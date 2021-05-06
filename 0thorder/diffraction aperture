@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu May  6 00:17:50 2021
+
+@author: marijn
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+#variables
+a = 1
+b = 1
+ran = 5
+spacing = 1000
+
+#grid
+x = np.linspace(-ran * a, ran * a, spacing)
+y = np.linspace(-ran * b, ran * b, spacing)
+x , y = np.meshgrid(x, y)
+
+#intensity profile
+normalized_intensity = np.sinc(x)*np.sinc(y)
+
+#plot
+fig = plt.figure(figsize = (8 , 5), dpi=300)
+ax = plt.axes(projection = '3d')
+
+ax.set_xlabel(r'x/a')
+ax.set_ylabel(r'y/b')
+ax.set_zlabel(r'$I/I_0$')
+
+ax.set_xlim(-ran * a, ran * a, spacing)
+ax.set_ylim(-ran * b, ran * b, spacing)
+ax.set_zlim(0,1)
+
+ax.plot_surface(x, y, normalized_intensity, cmap = 'twilight', edgecolor = 'none')
+plt.tight_layout()
+plt.show()
