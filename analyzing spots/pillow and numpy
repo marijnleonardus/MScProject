@@ -10,7 +10,6 @@ import scipy.io
 settings = scipy.io.loadmat('12 5 10x10 averaged grey.mat')
 
 #load and display matplotlib
-from matplotlib import pyplot
 from matplotlib import image
 
 #load as pixel array
@@ -19,8 +18,8 @@ print(image.dtype)
 print(image.shape)
 
 #show image
-pyplot.imshow(image)
-pyplot.show()
+#pyplot.imshow(image)
+#pyplot.show()
 
 #convert np array
 import numpy as np
@@ -33,6 +32,80 @@ from PIL import Image
 
 #convert grayscale
 im_grey= Image.open('12 5 10x10 averaged grey.png').convert('L')
-im__grey_numpy = np.array(im_grey)
-print(type(im__grey_numpy))
+im_grey.save('GrayScale.png')
+im_grey_numpy = np.array(im_grey) #stores grey in np array
+
+# random spot location: 
+x_spot = 453
+y_spot = 349
+
+#range around max
+xrange = 13
+yrange = 13
+
+x_low = x_spot - xrange
+x_high = x_spot + xrange
+
+y_low = y_spot - yrange
+y_high = y_spot + yrange
+
+#crop image around random spot location
+#first selecting right rows (y), then right columns (x)
+spot = im_grey_numpy[y_low:y_high, x_low:x_high]
+
+spotCropped = Image.fromarray(spot)
+spotCropped.save('spotCropped.png')
+
+#2d plot
+import matplotlib.pyplot as plt
+
+fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(13,4))
+axes[0].imshow(spot)
+axes[0].set_xlabel('pixels x')
+axes[0].set_ylabel('pixels y')
+axes[0].set_title('One of the spots')
+
+# 1D plots
+#slice 1D row and column where max is
+horizontal = spot[yrange] #take one row (where max is)
+vertical = spot[:,xrange] #take one column (where max is)
+
+#make 1d arrays
+xpixels = np.arange(x_low , x_high, 1)
+ypixels = np.arange(y_low, y_high, 1)
+
+#curve fitting with gaussian
+from scipy import optimize
+
+def gaussian(x, amplitude, mean, stddev):
+    return amplitude * np.exp(-((x - mean) / 4 / stddev)**2)
+
+init_values = [100, 453, 5] #amplitude, center (pixel), sigma
+
+bestValues, covariance = optimize.curve_fit(gaussian, xpixels, horizontal, p0=init_values)
+amplitude=bestValues[0]
+center=bestValues[1]
+sigma=bestValues[2]
+
+#horizontal
+axes[1].grid()
+axes[1].plot(xpixels, horizontal)
+axes[1].set_xlabel('pixels x')
+axes[1].set_ylabel('intensity (a.u.)')
+axes[1].set_title('slice horizontal')
+axes[1].plot(x, gaussian(xpixels,amplitude, center, sigma))
+
+#vertical
+axes[2].grid()
+axes[2].plot(ypixels, vertical)
+axes[2].set_xlabel('pixels y')
+axes[2].set_ylabel('intensity (a.u.)')
+axes[2].set_title('slice vertical')
+
+#saving and showing
+plt.savefig('analyzing spot.png', dpi = 500)
+plt.show()
+
+
+
 
