@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon May 17 11:19:35 2021
+
+@author: marijn
+"""
+#settings image
+import scipy.io
+settings = scipy.io.loadmat('12 5 10x10 averaged grey.mat')
+
+#load and display matplotlib
+from matplotlib import pyplot
+from matplotlib import image
+
+#load as pixel array
+image = image.imread('12 5 10x10 averaged grey.png')
+print(image.dtype)
+print(image.shape)
+
+#show image
+pyplot.imshow(image)
+pyplot.show()
+
+#convert np array
+import numpy as np
+from numpy import asarray
+npdata = asarray(image)
+print("numpy data shape:")
+print(npdata.shape)
+
+from PIL import Image
+
+#convert grayscale
+im_grey= Image.open('12 5 10x10 averaged grey.png').convert('L')
+im__grey_numpy = np.array(im_grey)
+print(type(im__grey_numpy))
+
