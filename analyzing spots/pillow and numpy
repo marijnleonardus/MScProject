@@ -5,41 +5,31 @@ Created on Mon May 17 11:19:35 2021
 
 @author: marijn
 """
-#settings image
+# Load settings image (.mat file). contains all relevant settings
 import scipy.io
 settings = scipy.io.loadmat('12 5 10x10 averaged grey.mat')
 
-#load and display matplotlib
+# Load image file using matploblib image library
 from matplotlib import image
-
-#load as pixel array
 image = image.imread('12 5 10x10 averaged grey.png')
-print(image.dtype)
-print(image.shape)
 
-#show image
-#pyplot.imshow(image)
-#pyplot.show()
-
-#convert np array
+# Convert image to numpy array
 import numpy as np
 from numpy import asarray
 npdata = asarray(image)
-print("numpy data shape:")
-print(npdata.shape)
 
+# Convert image to gray scale. Save to a new image 'GrayScale.png'. 
+# Store gray scale image in new numpy array
 from PIL import Image
-
-#convert grayscale
-im_grey= Image.open('12 5 10x10 averaged grey.png').convert('L')
+im_grey = Image.open('12 5 10x10 averaged grey.png').convert('L')
 im_grey.save('GrayScale.png')
-im_grey_numpy = np.array(im_grey) #stores grey in np array
+im_grey_numpy = np.array(im_grey)
 
-# random spot location: 
+# Pick a random spot. The image conatins 10x10 spots but I need only one 
 x_spot = 453
 y_spot = 349
 
-#range around max
+# Pick a range around the spot to analyze. The rest will be omitted.
 xrange = 13
 yrange = 13
 
@@ -49,58 +39,62 @@ x_high = x_spot + xrange
 y_low = y_spot - yrange
 y_high = y_spot + yrange
 
-#crop image around random spot location
-#first selecting right rows (y), then right columns (x)
-spot = im_grey_numpy[y_low:y_high, x_low:x_high]
+# Crop image using the domain chosen in the previous step
+# First selecting the right rows (y direction), then columns (x direction)
+spot = im_grey_numpy[y_low : y_high , x_low : x_high]
 
+# Save cropped array as a new image in PNG format (not necessary)
 spotCropped = Image.fromarray(spot)
 spotCropped.save('spotCropped.png')
 
-#2d plot
-import matplotlib.pyplot as plt
+"""
+Plotting
+"""
 
+# 3 subplots
+import matplotlib.pyplot as plt
 fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(13,4),constrained_layout=True)
 
+# First subplot: the image as a numpy 2D array. The array is called 'spot'
 axes[0].imshow(spot)
 axes[0].set_xlabel('pixels x')
 axes[0].set_ylabel('pixels y')
 axes[0].set_title('One of the spots')
 
-# 1D plots
-#slice 1D row and column where max is
-rowSum = spot.sum(axis=0) #take one row (where max is)
-columnSum = spot.sum(axis=1) #take one column (where max is)
+# Second and Third plots: histograms in X and Y directions
+# Make histograms, sum over rows and columns respectively, using all pixels
+rowSum = spot.sum(axis = 0) 
+columnSum = spot.sum(axis = 1) 
 
-#make 1d arrays
+# Pixel 1D matrices (discreet)
 xpixels = np.arange(x_low , x_high, 1)
 ypixels = np.arange(y_low, y_high, 1)
 
 """
-fit data with gaussian
+We want to fit our pixels with a Gaussian
 """
 
 from scipy import optimize
 
-#define gaussian
+# Define gaussian, having indepdent variable x and 3 parameters: amplitude, 
+# mean and standard deviation
 def gaussian(x, amplitude, mean, stddev):
     return amplitude * np.exp(-((x - mean) / 4 / stddev)**2)
 
-#initial values
-initialValuesX = 1000, 450, 2 #amplitude, center, sigma
+# Initial values. The fitting algorithm needs an initial guess. Esimated from 
+# plot of the spot. Respectively: amplitude, center, sigma
+initialValuesX = 1000, 450, 2 
 initialValuesY = 1000, 350, 2
 
-#Fit data, starting with initial values to converge easier
+# Fit data, starting with initial guess 'p0' to converge easier
+# Store result in 'bestValuesX/Y' matrix
 bestValuesX, covarX = optimize.curve_fit(gaussian, xpixels, rowSum, p0 = initialValuesX)
-amplitudeX = bestValuesX[0]
-meanX = bestValuesX[1]
-stddevX = bestValuesX[2]
+amplitudeX , meanX, stddevX = bestValuesX[0], bestValuesX[1], bestValuesX[2]
 
 bestValuesY, covarY = optimize.curve_fit(gaussian, ypixels, columnSum, p0 = initialValuesY)
-amplitudeY = bestValuesY[0]
-meanY = bestValuesY[1]
-stddevY = bestValuesY[2]
+amplitudeY , meanY, stddevY = bestValuesY[0], bestValuesY[1], bestValuesY[2]
 
-#horizontal
+# Plotting the horizontal histogram and its fit
 axes[1].grid()
 axes[1].scatter(xpixels, rowSum)
 axes[1].plot(xpixels, gaussian(xpixels,amplitudeX, meanX, stddevX),color='r')
@@ -108,7 +102,7 @@ axes[1].set_xlabel('horizontal pixels')
 axes[1].set_ylabel('Counts')
 axes[1].set_title('Histogram horizontal')
 
-#vertical
+# Plotting the vertical histogram and its fit
 axes[2].grid()
 axes[2].scatter(ypixels, columnSum)
 axes[2].plot(ypixels, gaussian(ypixels,amplitudeY, meanY, stddevY),color='r')
@@ -116,17 +110,11 @@ axes[2].set_xlabel('vertical pixels')
 axes[2].set_ylabel('Counts')
 axes[2].set_title('Histogram vertical')
 
-#saving and showing
-plt.savefig('analyzing spot.png', dpi = 500)
+# Saving and showing
+plt.savefig('analyzingSpot.png', dpi = 400)
 plt.show()
 
-#calculating sigma
-#pixel size camera
+# Calculating standarddeviations in x and y directions, using pixel size
 dx, dy = 4.65 , 4.65
-
 sigmaX , sigmaY = stddevX * dx , stddevY * dy
 print(sigmaX, sigmaY)
-
-
-
-
