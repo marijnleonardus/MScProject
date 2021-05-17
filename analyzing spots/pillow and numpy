@@ -59,7 +59,8 @@ spotCropped.save('spotCropped.png')
 #2d plot
 import matplotlib.pyplot as plt
 
-fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(13,4))
+fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(13,4),constrained_layout=True)
+
 axes[0].imshow(spot)
 axes[0].set_xlabel('pixels x')
 axes[0].set_ylabel('pixels y')
@@ -67,44 +68,64 @@ axes[0].set_title('One of the spots')
 
 # 1D plots
 #slice 1D row and column where max is
-horizontal = spot[yrange] #take one row (where max is)
-vertical = spot[:,xrange] #take one column (where max is)
+rowSum = spot.sum(axis=0) #take one row (where max is)
+columnSum = spot.sum(axis=1) #take one column (where max is)
 
 #make 1d arrays
 xpixels = np.arange(x_low , x_high, 1)
 ypixels = np.arange(y_low, y_high, 1)
 
-#curve fitting with gaussian
+"""
+fit data with gaussian
+"""
+
 from scipy import optimize
 
+#define gaussian
 def gaussian(x, amplitude, mean, stddev):
     return amplitude * np.exp(-((x - mean) / 4 / stddev)**2)
 
-init_values = [100, 453, 5] #amplitude, center (pixel), sigma
+#initial values
+initialValuesX = 1000, 450, 2 #amplitude, center, sigma
+initialValuesY = 1000, 350, 2
 
-bestValues, covariance = optimize.curve_fit(gaussian, xpixels, horizontal, p0=init_values)
-amplitude=bestValues[0]
-center=bestValues[1]
-sigma=bestValues[2]
+#Fit data, starting with initial values to converge easier
+bestValuesX, covarX = optimize.curve_fit(gaussian, xpixels, rowSum, p0 = initialValuesX)
+amplitudeX = bestValuesX[0]
+meanX = bestValuesX[1]
+stddevX = bestValuesX[2]
+
+bestValuesY, covarY = optimize.curve_fit(gaussian, ypixels, columnSum, p0 = initialValuesY)
+amplitudeY = bestValuesY[0]
+meanY = bestValuesY[1]
+stddevY = bestValuesY[2]
 
 #horizontal
 axes[1].grid()
-axes[1].plot(xpixels, horizontal)
-axes[1].set_xlabel('pixels x')
-axes[1].set_ylabel('intensity (a.u.)')
-axes[1].set_title('slice horizontal')
-axes[1].plot(x, gaussian(xpixels,amplitude, center, sigma))
+axes[1].scatter(xpixels, rowSum)
+axes[1].plot(xpixels, gaussian(xpixels,amplitudeX, meanX, stddevX),color='r')
+axes[1].set_xlabel('horizontal pixels')
+axes[1].set_ylabel('Counts')
+axes[1].set_title('Histogram horizontal')
 
 #vertical
 axes[2].grid()
-axes[2].plot(ypixels, vertical)
-axes[2].set_xlabel('pixels y')
-axes[2].set_ylabel('intensity (a.u.)')
-axes[2].set_title('slice vertical')
+axes[2].scatter(ypixels, columnSum)
+axes[2].plot(ypixels, gaussian(ypixels,amplitudeY, meanY, stddevY),color='r')
+axes[2].set_xlabel('vertical pixels')
+axes[2].set_ylabel('Counts')
+axes[2].set_title('Histogram vertical')
 
 #saving and showing
 plt.savefig('analyzing spot.png', dpi = 500)
 plt.show()
+
+#calculating sigma
+#pixel size camera
+dx, dy = 4.65 , 4.65
+
+sigmaX , sigmaY = stddevX * dx , stddevY * dy
+print(sigmaX, sigmaY)
 
 
 
