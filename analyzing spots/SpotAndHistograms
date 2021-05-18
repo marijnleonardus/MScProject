@@ -89,10 +89,15 @@ amplitudeX , meanX, stddevX = bestValuesX[0], bestValuesX[1], bestValuesX[2]
 bestValuesY, covarY = optimize.curve_fit(gaussian, ypixels, columnSum, p0 = initialValuesY)
 amplitudeY , meanY, stddevY = bestValuesY[0], bestValuesY[1], bestValuesY[2]
 
+# Array for plotting fit (more accurate)
+stepsForFit = 100
+smallPixelsX = np.linspace(x_low , x_high , stepsForFit)
+smallPixelsY = np.linspace(y_low , y_high , stepsForFit)
+
 # Plotting the horizontal histogram and its fit
 axes[1].grid()
 axes[1].scatter(xpixels, rowSum)
-axes[1].plot(xpixels, gaussian(xpixels,amplitudeX, meanX, stddevX),color='r')
+axes[1].plot(smallPixelsX, gaussian(smallPixelsX,amplitudeX, meanX, stddevX),color='r')
 axes[1].set_xlabel('horizontal pixels')
 axes[1].set_ylabel('Counts')
 axes[1].set_title('Histogram horizontal')
@@ -100,7 +105,7 @@ axes[1].set_title('Histogram horizontal')
 # Plotting the vertical histogram and its fit
 axes[2].grid()
 axes[2].scatter(ypixels, columnSum)
-axes[2].plot(ypixels, gaussian(ypixels,amplitudeY, meanY, stddevY),color='r')
+axes[2].plot(smallPixelsY, gaussian(smallPixelsY,amplitudeY, meanY, stddevY),color='r')
 axes[2].set_xlabel('vertical pixels')
 axes[2].set_ylabel('Counts')
 axes[2].set_title('Histogram vertical')
@@ -110,10 +115,10 @@ plt.savefig('analyzingSpot.png', dpi = 400)
 plt.show()
 
 # Calculating standarddeviations in x and y directions, using pixel size
-dx, dy = 4.65 , 4.65
-sigmaX , sigmaY = stddevX * dx , stddevY * dy
-print(sigmaX, sigmaY)
+pixelSizeX, pixelSizeY = 4.65 , 4.65
 
+# Converting from standard deviation to 1/e^2 radius 
+beamWidthX = pixelSizeX * 2 * abs(stddevX)
+beamWidthY = pixelSizeY * 2 * abs(stddevY)
 
-
-
+print("beam withs x and y: ", beamWidthX, beamWidthY)
