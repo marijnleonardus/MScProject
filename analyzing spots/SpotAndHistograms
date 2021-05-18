@@ -5,33 +5,31 @@ Created on Mon May 17 11:19:35 2021
 
 @author: marijn
 """
-# Load settings image (.mat file). contains all relevant settings
+# Libraries
 import scipy.io
-settings = scipy.io.loadmat('12 5 10x10 averaged grey.mat')
-
-# Load image file using matploblib image library
-from matplotlib import image
-image = image.imread('12 5 10x10 averaged grey.png')
-
-# Convert image to numpy array
 import numpy as np
-from numpy import asarray
-npdata = asarray(image)
-
-# Convert image to gray scale. Save to a new image 'GrayScale.png'. 
-# Store gray scale image in new numpy array
 from PIL import Image
-im_grey = Image.open('12 5 10x10 averaged grey.png').convert('L')
-im_grey.save('GrayScale.png')
-im_grey_numpy = np.array(im_grey)
+import matplotlib.pyplot as plt
+from scipy import optimize
+
+
+# Load settings image (.mat file). contains all relevant settings
+matFile = scipy.io.loadmat('12 5 10x10 averaged grey.mat')
+
+# The directory entry 'cam_frame' contains the camera image. Save as np array
+cam_frame = matFile["cam_frame"]
+
+# Covert to image using PIL and save
+im = Image.fromarray(cam_frame)
+file = im.save('12 5 10x10 averaged grey full camera.png')
 
 # Pick a random spot. The image conatins 10x10 spots but I need only one 
-x_spot = 453
-y_spot = 349
+x_spot = 329
+y_spot = 460
 
 # Pick a range around the spot to analyze. The rest will be omitted.
-xrange = 13
-yrange = 13
+xrange = 5
+yrange = 5
 
 x_low = x_spot - xrange
 x_high = x_spot + xrange
@@ -41,18 +39,17 @@ y_high = y_spot + yrange
 
 # Crop image using the domain chosen in the previous step
 # First selecting the right rows (y direction), then columns (x direction)
-spot = im_grey_numpy[y_low : y_high , x_low : x_high]
+spot = cam_frame[y_low : y_high , x_low : x_high]
 
-# Save cropped array as a new image in PNG format (not necessary)
-spotCropped = Image.fromarray(spot)
-spotCropped.save('spotCropped.png')
+# Save cropped array as a new image in PNG format (not necessary)l, commented
+#spotCropped = Image.fromarray(spot)
+#spotCropped.save('spotCropped.png')
 
 """
 Plotting
 """
 
 # 3 subplots
-import matplotlib.pyplot as plt
 fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(13,4),constrained_layout=True)
 
 # First subplot: the image as a numpy 2D array. The array is called 'spot'
@@ -74,8 +71,6 @@ ypixels = np.arange(y_low, y_high, 1)
 We want to fit our pixels with a Gaussian
 """
 
-from scipy import optimize
-
 # Define gaussian, having indepdent variable x and 3 parameters: amplitude, 
 # mean and standard deviation
 def gaussian(x, amplitude, mean, stddev):
@@ -83,8 +78,8 @@ def gaussian(x, amplitude, mean, stddev):
 
 # Initial values. The fitting algorithm needs an initial guess. Esimated from 
 # plot of the spot. Respectively: amplitude, center, sigma
-initialValuesX = 1000, 450, 2 
-initialValuesY = 1000, 350, 2
+initialValuesX = 800, 329, 2 
+initialValuesY = 800, 459, 2
 
 # Fit data, starting with initial guess 'p0' to converge easier
 # Store result in 'bestValuesX/Y' matrix
@@ -118,3 +113,7 @@ plt.show()
 dx, dy = 4.65 , 4.65
 sigmaX , sigmaY = stddevX * dx , stddevY * dy
 print(sigmaX, sigmaY)
+
+
+
+
