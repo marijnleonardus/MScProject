@@ -63,6 +63,13 @@ axes[0].set_title('One of the spots')
 rowSum = spot.sum(axis = 0) 
 columnSum = spot.sum(axis = 1) 
 
+# Normalization; plot normalized intensity in both row and column histograms
+maximumRowSum = np.max(rowSum)
+rowSumNormalized = rowSum / maximumRowSum
+
+maximumColumnSum = np.max(columnSum)
+columnSumNormalized = columnSum / maximumColumnSum
+
 # Pixel 1D matrices (discreet)
 xpixels = np.arange(x_low , x_high, 1)
 ypixels = np.arange(y_low, y_high, 1)
@@ -74,40 +81,40 @@ We want to fit our pixels with a Gaussian
 # Define gaussian, having indepdent variable x and 3 parameters: amplitude, 
 # mean and standard deviation
 def gaussian(x, amplitude, mean, stddev):
-    return amplitude * np.exp(-((x - mean) / 4 / stddev)**2)
+    return amplitude * np.exp(-0.5 * ((x - mean) / stddev)**2)
 
 # Initial values. The fitting algorithm needs an initial guess. Esimated from 
 # plot of the spot. Respectively: amplitude, center, sigma
-initialValuesX = 800, 329, 2 
-initialValuesY = 800, 459, 2
+initialValuesX = 1, 329, 2 
+initialValuesY = 1, 459, 2
 
 # Fit data, starting with initial guess 'p0' to converge easier
 # Store result in 'bestValuesX/Y' matrix
-bestValuesX, covarX = optimize.curve_fit(gaussian, xpixels, rowSum, p0 = initialValuesX)
+bestValuesX, covarX = optimize.curve_fit(gaussian, xpixels, rowSumNormalized, p0 = initialValuesX)
 amplitudeX , meanX, stddevX = bestValuesX[0], bestValuesX[1], bestValuesX[2]
 
-bestValuesY, covarY = optimize.curve_fit(gaussian, ypixels, columnSum, p0 = initialValuesY)
+bestValuesY, covarY = optimize.curve_fit(gaussian, ypixels, columnSumNormalized, p0 = initialValuesY)
 amplitudeY , meanY, stddevY = bestValuesY[0], bestValuesY[1], bestValuesY[2]
 
 # Array for plotting fit (more accurate)
-stepsForFit = 100
+stepsForFit = 250
 smallPixelsX = np.linspace(x_low , x_high , stepsForFit)
 smallPixelsY = np.linspace(y_low , y_high , stepsForFit)
 
 # Plotting the horizontal histogram and its fit
 axes[1].grid()
-axes[1].scatter(xpixels, rowSum)
+axes[1].scatter(xpixels, rowSumNormalized)
 axes[1].plot(smallPixelsX, gaussian(smallPixelsX,amplitudeX, meanX, stddevX),color='r')
 axes[1].set_xlabel('horizontal pixels')
-axes[1].set_ylabel('Counts')
+axes[1].set_ylabel('Normalized intensity')
 axes[1].set_title('Histogram horizontal')
 
 # Plotting the vertical histogram and its fit
 axes[2].grid()
-axes[2].scatter(ypixels, columnSum)
+axes[2].scatter(ypixels, columnSumNormalized)
 axes[2].plot(smallPixelsY, gaussian(smallPixelsY,amplitudeY, meanY, stddevY),color='r')
 axes[2].set_xlabel('vertical pixels')
-axes[2].set_ylabel('Counts')
+axes[2].set_ylabel('Normlalized intensity')
 axes[2].set_title('Histogram vertical')
 
 # Saving and showing
@@ -122,3 +129,7 @@ beamWidthX = pixelSizeX * 2 * abs(stddevX)
 beamWidthY = pixelSizeY * 2 * abs(stddevY)
 
 print("beam withs x and y: ", beamWidthX, beamWidthY)
+
+
+
+
