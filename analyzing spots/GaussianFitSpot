@@ -2,77 +2,81 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon May 17 11:19:35 2021
-
 @author: marijn
 """
-# Libraries
-import scipy.io
-import numpy as np
-from PIL import Image
-import matplotlib.pyplot as plt
-from scipy import optimize
 
+# Libraries
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.io # load .mat
+from PIL import Image # save .np as .png
+from scipy import optimize # fit data
 
 # Load settings image (.mat file). contains all relevant settings
-matFile = scipy.io.loadmat('12 5 10x10 averaged grey.mat')
+mat_file = scipy.io.loadmat('12 5 10x10 averaged grey.mat')
 
 # The directory entry 'cam_frame' contains the camera image. Save as np array
-cam_frame = matFile["cam_frame"]
+cam_frame = mat_file["cam_frame"]
 
 # Covert to image using PIL and save
-im = Image.fromarray(cam_frame)
-file = im.save('12 5 10x10 averaged grey full camera.png')
+full_view_camera = Image.fromarray(cam_frame)
+png_file = full_view_camera.save('12 5 10x10 averaged grey full camera.png')
 
 # Pick a random spot. The image conatins 10x10 spots but I need only one 
-x_spot = 329
-y_spot = 460
+center_spot_x = 329
+center_spot_y = 460
 
 # Pick a range around the spot to analyze. The rest will be omitted.
-xrange = 5
-yrange = 5
+range_x = 5
+range_y = 5
 
-x_low = x_spot - xrange
-x_high = x_spot + xrange
+lower_limit_frames_x = center_spot_x - range_x
+higher_limit_frames_x = center_spot_x + range_x
 
-y_low = y_spot - yrange
-y_high = y_spot + yrange
+lower_limit_frames_y = center_spot_y - range_y
+higher_limit_frames_y = center_spot_y + range_y
 
 # Crop image using the domain chosen in the previous step
 # First selecting the right rows (y direction), then columns (x direction)
-spot = cam_frame[y_low : y_high , x_low : x_high]
+spot_cropped = cam_frame[lower_limit_frames_y : higher_limit_frames_y , lower_limit_frames_x : higher_limit_frames_x]
+
+# Normalize
+maximum_spot_intensity = np.max(spot_cropped)
+spot_cropped_normalized = spot_cropped / maximum_spot_intensity
 
 # Save cropped array as a new image in PNG format (not necessary)l, commented
-#spotCropped = Image.fromarray(spot)
-#spotCropped.save('spotCropped.png')
+#spot_cropped_png_file = Image.fromarray(spot_cropped)
+#spot_cropped_png_file.save('spotCropped.png')
 
 """
 Plotting
 """
 
 # 3 subplots
-fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(13,4),constrained_layout=True)
-
+fig, (ax1, ax2, ax3) = plt.subplots(ncols = 3, figsize = (9,3), constrained_layout = True)
 # First subplot: the image as a numpy 2D array. The array is called 'spot'
-axes[0].imshow(spot)
-axes[0].set_xlabel('pixels x')
-axes[0].set_ylabel('pixels y')
-axes[0].set_title('One of the spots')
+matplotlib_imshow = ax1.imshow(spot_cropped_normalized, cmap = 'viridis')
+ax1.set_xlabel('pixels x')
+ax1.set_ylabel('pixels y')
+ax1.set_title('One of the spots')
+colorBar = plt.colorbar(matplotlib_imshow, location = 'left', ax = ax1, aspect = 30)
+colorBar.set_label('Normalized Intensity')
 
 # Second and Third plots: histograms in X and Y directions
 # Make histograms, sum over rows and columns respectively, using all pixels
-rowSum = spot.sum(axis = 0) 
-columnSum = spot.sum(axis = 1) 
+histogram_rows = spot_cropped.sum(axis = 0) 
+histogram_columns = spot_cropped.sum(axis = 1) 
 
 # Normalization; plot normalized intensity in both row and column histograms
-maximumRowSum = np.max(rowSum)
-rowSumNormalized = rowSum / maximumRowSum
+maximum_histogram_rows = np.max(histogram_rows)
+histogram_rows_normalized = histogram_rows / maximum_histogram_rows
 
-maximumColumnSum = np.max(columnSum)
-columnSumNormalized = columnSum / maximumColumnSum
+maximum_histogram_columns = np.max(histogram_columns)
+histogram_columns_normalized = histogram_columns / maximum_histogram_columns
 
 # Pixel 1D matrices (discreet)
-xpixels = np.arange(x_low , x_high, 1)
-ypixels = np.arange(y_low, y_high, 1)
+pixels_x = np.arange(lower_limit_frames_x, higher_limit_frames_x, 1)
+pixels_y = np.arange(lower_limit_frames_y, higher_limit_frames_y, 1)
 
 """
 We want to fit our pixels with a Gaussian
@@ -85,51 +89,54 @@ def gaussian(x, amplitude, mean, stddev):
 
 # Initial values. The fitting algorithm needs an initial guess. Esimated from 
 # plot of the spot. Respectively: amplitude, center, sigma
-initialValuesX = 1, 329, 2 
-initialValuesY = 1, 459, 2
+initial_values_x = 1, center_spot_x, 2 
+initial_values_y = 1, center_spot_y, 2
 
 # Fit data, starting with initial guess 'p0' to converge easier
 # Store result in 'bestValuesX/Y' matrix
-bestValuesX, covarX = optimize.curve_fit(gaussian, xpixels, rowSumNormalized, p0 = initialValuesX)
-amplitudeX , meanX, stddevX = bestValuesX[0], bestValuesX[1], bestValuesX[2]
+fit_parameters_x, covariance_x = optimize.curve_fit(gaussian, pixels_x, histogram_rows_normalized, p0 = initial_values_x)
 
-bestValuesY, covarY = optimize.curve_fit(gaussian, ypixels, columnSumNormalized, p0 = initialValuesY)
-amplitudeY , meanY, stddevY = bestValuesY[0], bestValuesY[1], bestValuesY[2]
+amplitude_x = fit_parameters_x[0]
+mean_x = fit_parameters_x[1]
+stddev_x = fit_parameters_x[2]
+
+fit_parameters_y, covariance_y = optimize.curve_fit(gaussian, pixels_y, histogram_columns_normalized, p0 = initial_values_y)
+
+amplitude_y =fit_parameters_y[0]
+mean_y = fit_parameters_y[1]
+stddev_y = fit_parameters_y[2]
 
 # Array for plotting fit (more accurate)
-stepsForFit = 250
-smallPixelsX = np.linspace(x_low , x_high , stepsForFit)
-smallPixelsY = np.linspace(y_low , y_high , stepsForFit)
+fitting_steps = 250
+pixels_smaller_x = np.linspace(lower_limit_frames_x , higher_limit_frames_x , fitting_steps)
+pixels_smaller_y = np.linspace(lower_limit_frames_y , higher_limit_frames_y , fitting_steps)
 
 # Plotting the horizontal histogram and its fit
-axes[1].grid()
-axes[1].scatter(xpixels, rowSumNormalized)
-axes[1].plot(smallPixelsX, gaussian(smallPixelsX,amplitudeX, meanX, stddevX),color='r')
-axes[1].set_xlabel('horizontal pixels')
-axes[1].set_ylabel('Normalized intensity')
-axes[1].set_title('Histogram horizontal')
+ax2.grid()
+ax2.scatter(pixels_x, histogram_rows_normalized)
+ax2.plot(pixels_smaller_x, gaussian(pixels_smaller_x, amplitude_x, mean_x, stddev_x), color='r')
+ax2.set_xlabel('horizontal pixels')
+ax2.set_ylabel('Normalized intensity')
+ax2.set_title('Histogram horizontal')
 
 # Plotting the vertical histogram and its fit
-axes[2].grid()
-axes[2].scatter(ypixels, columnSumNormalized)
-axes[2].plot(smallPixelsY, gaussian(smallPixelsY,amplitudeY, meanY, stddevY),color='r')
-axes[2].set_xlabel('vertical pixels')
-axes[2].set_ylabel('Normlalized intensity')
-axes[2].set_title('Histogram vertical')
+ax3.grid()
+ax3.scatter(pixels_y, histogram_columns_normalized)
+ax3.plot(pixels_smaller_y, gaussian(pixels_smaller_y, amplitude_y, mean_y, stddev_y), color='r')
+ax3.set_xlabel('vertical pixels')
+ax3.set_ylabel('Normlalized intensity')
+ax3.set_title('Histogram vertical')
 
 # Saving and showing
 plt.savefig('analyzingSpot.png', dpi = 400)
 plt.show()
 
 # Calculating standarddeviations in x and y directions, using pixel size
-pixelSizeX, pixelSizeY = 4.65 , 4.65
+pixel_size_x = 4.65
+pixel_size_y = 4.65
 
 # Converting from standard deviation to 1/e^2 radius 
-beamWidthX = pixelSizeX * 2 * abs(stddevX)
-beamWidthY = pixelSizeY * 2 * abs(stddevY)
+beamwidth_x = pixel_size_x * 2 * abs(stddev_x)
+beamwidth_y = pixel_size_y * 2 * abs(stddev_y)
 
-print("beam withs x and y: ", beamWidthX, beamWidthY)
-
-
-
-
+print("beam withs x and y: ", beamwidth_x, 'and',  beamwidth_y)
