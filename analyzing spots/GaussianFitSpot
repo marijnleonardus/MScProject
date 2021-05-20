@@ -78,52 +78,64 @@ histogram_columns_normalized = histogram_columns / maximum_histogram_columns
 pixels_x = np.arange(lower_limit_frames_x, higher_limit_frames_x, 1)
 pixels_y = np.arange(lower_limit_frames_y, higher_limit_frames_y, 1)
 
+# Convert pixels to distance (microns) using pixel size of camera. 
+# Stored in 'coordinate' variables. 
+# After the fit the center of the spot will be reset to (0,0) --> 'coordinates_fit
+pixel_size_x = 4.65
+pixel_size_y = 4.65
+
+x_coordinate = pixels_x * pixel_size_x
+y_coordinate = pixels_y * pixel_size_y
+
 """
 We want to fit our pixels with a Gaussian
 """
 
 # Define gaussian, having indepdent variable x and 3 parameters: amplitude, 
 # mean and standard deviation
-def gaussian(x, amplitude, mean, stddev):
+def gaussian_function(x, amplitude, mean, stddev):
     return amplitude * np.exp(-0.5 * ((x - mean) / stddev)**2)
 
 # Initial values. The fitting algorithm needs an initial guess. Esimated from 
 # plot of the spot. Respectively: amplitude, center, sigma
-initial_values_x = 1, center_spot_x, 2 
-initial_values_y = 1, center_spot_y, 2
+initial_values_x = 1, center_spot_x * pixel_size_x, 8
+initial_values_y = 1, center_spot_y * pixel_size_y, 8
 
 # Fit data, starting with initial guess 'p0' to converge easier
-# Store result in 'bestValuesX/Y' matrix
-fit_parameters_x, covariance_x = optimize.curve_fit(gaussian, pixels_x, histogram_rows_normalized, p0 = initial_values_x)
-
+# Store result in 'fit_parameters matrices
+fit_parameters_x, covariance_x = optimize.curve_fit(gaussian_function, x_coordinate, histogram_rows_normalized, p0 = initial_values_x)
 amplitude_x = fit_parameters_x[0]
 mean_x = fit_parameters_x[1]
 stddev_x = fit_parameters_x[2]
 
-fit_parameters_y, covariance_y = optimize.curve_fit(gaussian, pixels_y, histogram_columns_normalized, p0 = initial_values_y)
-
+fit_parameters_y, covariance_y = optimize.curve_fit(gaussian_function, y_coordinate, histogram_columns_normalized, p0 = initial_values_y)
 amplitude_y =fit_parameters_y[0]
 mean_y = fit_parameters_y[1]
 stddev_y = fit_parameters_y[2]
 
-# Array for plotting fit (more accurate)
+# Array for plotting fit (more accurate). Subtract mean_x/mean_y because the 
+# Middle of the Gauss is set to 0
 fitting_steps = 250
-pixels_smaller_x = np.linspace(lower_limit_frames_x , higher_limit_frames_x , fitting_steps)
-pixels_smaller_y = np.linspace(lower_limit_frames_y , higher_limit_frames_y , fitting_steps)
+x_coordinate_fit = np.linspace(lower_limit_frames_x , higher_limit_frames_x , fitting_steps) * pixel_size_x - mean_x
+y_coordinate_fit = np.linspace(lower_limit_frames_y , higher_limit_frames_y , fitting_steps) * pixel_size_y - mean_y
+
+# Coordinates plot. Again: subtract mean x,y so that middle of spot is 0,0
+x_coordinate_plot = x_coordinate - mean_x
+y_coordinate_plot = y_coordinate - mean_y
 
 # Plotting the horizontal histogram and its fit
 ax2.grid()
-ax2.scatter(pixels_x, histogram_rows_normalized)
-ax2.plot(pixels_smaller_x, gaussian(pixels_smaller_x, amplitude_x, mean_x, stddev_x), color='r')
-ax2.set_xlabel('horizontal pixels')
+ax2.scatter(x_coordinate_plot, histogram_rows_normalized)
+ax2.plot(x_coordinate_fit, gaussian_function(x_coordinate_fit, amplitude_x, 0, stddev_x), color='r')
+ax2.set_xlabel('x')
 ax2.set_ylabel('Normalized intensity')
 ax2.set_title('Histogram horizontal')
 
 # Plotting the vertical histogram and its fit
 ax3.grid()
-ax3.scatter(pixels_y, histogram_columns_normalized)
-ax3.plot(pixels_smaller_y, gaussian(pixels_smaller_y, amplitude_y, mean_y, stddev_y), color='r')
-ax3.set_xlabel('vertical pixels')
+ax3.scatter(y_coordinate_plot, histogram_columns_normalized)
+ax3.plot(y_coordinate_fit, gaussian_function(y_coordinate_fit, amplitude_y, 0, stddev_y), color='r')
+ax3.set_xlabel('y')
 ax3.set_ylabel('Normlalized intensity')
 ax3.set_title('Histogram vertical')
 
@@ -131,12 +143,9 @@ ax3.set_title('Histogram vertical')
 plt.savefig('analyzingSpot.png', dpi = 400)
 plt.show()
 
-# Calculating standarddeviations in x and y directions, using pixel size
-pixel_size_x = 4.65
-pixel_size_y = 4.65
-
-# Converting from standard deviation to 1/e^2 radius 
-beamwidth_x = pixel_size_x * 2 * abs(stddev_x)
-beamwidth_y = pixel_size_y * 2 * abs(stddev_y)
+# Converting from standard deviation to 1/e^2 radius. This comes out to just multiplying 
+# by two (see definition waist radius or 1/e^2 radius)
+beamwidth_x = 2 * abs(stddev_x)
+beamwidth_y = 2 * abs(stddev_y)
 
 print("beam withs x and y: ", beamwidth_x, 'and',  beamwidth_y)
