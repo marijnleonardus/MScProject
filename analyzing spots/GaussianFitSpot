@@ -1,40 +1,41 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon May 17 11:19:35 2021
+Created on Fri May 21 11:09:09 2021
+
 @author: marijn
 """
 
 # Libraries
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import scipy.io # load .mat
 from PIL import Image # save .np as .png
 from scipy import optimize # fit data
 
 # Load settings image (.mat file). contains all relevant settings
-mat_file = scipy.io.loadmat('12 5 10x10 averaged grey.mat')
+mat_file = scipy.io.loadmat('3x3 adjusted telescope plus camera focus.mat')
 
 # The directory entry 'cam_frame' contains the camera image. Save as np array
 cam_frame = mat_file["cam_frame"]
 
 # Covert to image using PIL and save
-full_view_camera = Image.fromarray(cam_frame)
-png_file = full_view_camera.save('12 5 10x10 averaged grey full camera.png')
+#zoomed_view_camera = Image.fromarray(cam_frame_zoomed)
+#png_file = zoomed_view_camera.save('png of zoomed camera frame.png')
 
 # Pick a random spot. The image conatins 10x10 spots but I need only one 
-center_spot_x = 329
-center_spot_y = 460
+center_spot_x = 455
+center_spot_y = 511
 
 # Pick a range around the spot to analyze. The rest will be omitted.
-range_x = 5
-range_y = 5
+range_x = 3
+range_y = 3
 
 lower_limit_frames_x = center_spot_x - range_x
-higher_limit_frames_x = center_spot_x + range_x
+higher_limit_frames_x = center_spot_x + range_x + 1
 
 lower_limit_frames_y = center_spot_y - range_y
-higher_limit_frames_y = center_spot_y + range_y
+higher_limit_frames_y = center_spot_y + range_y + 1
 
 # Crop image using the domain chosen in the previous step
 # First selecting the right rows (y direction), then columns (x direction)
@@ -54,7 +55,8 @@ Plotting
 
 # 3 subplots
 fig, (ax1, ax2, ax3) = plt.subplots(ncols = 3, figsize = (9,3), constrained_layout = True)
-# First subplot: the image as a numpy 2D array. The array is called 'spot'
+
+# First subplot: show the spot with some pixels around it
 matplotlib_imshow = ax1.imshow(spot_cropped_normalized, cmap = 'viridis')
 ax1.set_xlabel('pixels x')
 ax1.set_ylabel('pixels y')
@@ -62,7 +64,7 @@ ax1.set_title('One of the spots')
 colorBar = plt.colorbar(matplotlib_imshow, location = 'left', ax = ax1, aspect = 30)
 colorBar.set_label('Normalized Intensity')
 
-# Second and Third plots: histograms in X and Y directions
+# Second and Third subplots: histograms in X and Y directions
 # Make histograms, sum over rows and columns respectively, using all pixels
 histogram_rows = spot_cropped.sum(axis = 0) 
 histogram_columns = spot_cropped.sum(axis = 1) 
@@ -123,11 +125,15 @@ y_coordinate_fit = np.linspace(lower_limit_frames_y , higher_limit_frames_y , fi
 x_coordinate_plot = x_coordinate - mean_x
 y_coordinate_plot = y_coordinate - mean_y
 
+# Ticks
+tick_spacing = 5
+
 # Plotting the horizontal histogram and its fit
 ax2.grid()
 ax2.scatter(x_coordinate_plot, histogram_rows_normalized)
 ax2.plot(x_coordinate_fit, gaussian_function(x_coordinate_fit, amplitude_x, 0, stddev_x), color='r')
 ax2.set_xlabel('x')
+ax2.xaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
 ax2.set_ylabel('Normalized intensity')
 ax2.set_title('Histogram horizontal')
 
@@ -136,6 +142,7 @@ ax3.grid()
 ax3.scatter(y_coordinate_plot, histogram_columns_normalized)
 ax3.plot(y_coordinate_fit, gaussian_function(y_coordinate_fit, amplitude_y, 0, stddev_y), color='r')
 ax3.set_xlabel('y')
+ax3.xaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
 ax3.set_ylabel('Normlalized intensity')
 ax3.set_title('Histogram vertical')
 
