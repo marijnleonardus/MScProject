@@ -20,7 +20,7 @@ mean_x = 0
 mean_y = 0
 
 sigma_x = 1
-sigma_y = 1
+sigma_y = 2
 
 amplitude = 1
 
@@ -31,8 +31,22 @@ def multivariate_gaussian(X, Y, mean_x, mean_y, amplitude, sigma_x, sigma_y):
 # The distribution on the variables X, Y packed into pos.
 Z = multivariate_gaussian(X,Y,mean_x,mean_y,amplitude,sigma_x,sigma_y)
 
-# Make and show plot
-fig = plt.figure()
-ax1 = fig.add_subplot(1,1,1,projection='3d')
+# Make and show plots
+
+# 3D surface plot
+fig = plt.figure(figsize=(9,4))
+ax1 = fig.add_subplot(1,2,1,projection='3d')
 ax1.plot_surface(X, Y, Z)
+ax1.set_title("2d")
+ax1.set_xlabel('x')
+ax1.set_ylabel('y')
+ax1.set_zlabel('z')
+
+# 2D contour plot
+ax2 = fig.add_subplot(1,2,2)
+ax2.contour(X,Y,Z)
+ax2.set_title('3d')
+ax2.set_xlabel('x')
+ax2.set_ylabel('y')
+
 plt.show()
