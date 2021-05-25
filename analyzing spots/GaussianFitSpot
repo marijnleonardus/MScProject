@@ -19,13 +19,19 @@ mat_file = scipy.io.loadmat('3x3 adjusted telescope plus camera focus.mat')
 # The directory entry 'cam_frame' contains the camera image. Save as np array
 cam_frame = mat_file["cam_frame"]
 
+"""finding a spot"""
+# The camera exports a 1024x768 image, of which only a small window is of interest because
+# you normally zoom in. To quickly find one of the spots:
+max_element = np.amax(cam_frame)
+loc_max_element = np.where(cam_frame == max_element)
+
 # Covert to image using PIL and save
 #zoomed_view_camera = Image.fromarray(cam_frame_zoomed)
 #png_file = zoomed_view_camera.save('png of zoomed camera frame.png')
 
 # Pick a random spot. The image conatins 10x10 spots but I need only one 
-center_spot_x = 455
-center_spot_y = 511
+center_spot_x = np.int(loc_max_element[1])
+center_spot_y = np.int(loc_max_element[0])
 
 # Pick a range around the spot to analyze. The rest will be omitted.
 range_x = 3
