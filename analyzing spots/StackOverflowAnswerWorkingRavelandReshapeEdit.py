@@ -30,20 +30,24 @@ y_pixels = image.shape[1]
 # Create x and y indices. Create a grid using np.meshgrid()
 x = np.arange(0, x_pixels, 1)
 y = np.arange(0, y_pixels, 1)
-x,y = np.meshgrid(x, y)
+x, y = np.meshgrid(x, y)
 
+"""fitting"""
 # Add initial guess to start fitting. Assume peak is in center of image
 # Assume standard devations about 10% of image dimensions
-initial_guess = (1, x_pixels/2,y_pixels/2, x_pixels / 10, y_pixels / 10)
+initial_guess = (1, x_pixels / 2, y_pixels / 2, x_pixels / 10, y_pixels / 10)
 
 # Fitting the data from the image using our twoDgaussian function
 fit_parameters, covariance = optimize.curve_fit(two_D_gaussian, (x, y), image_raveled, p0 = initial_guess)
 data_fitted = two_D_gaussian((x, y), *fit_parameters)
 
+"""plotting"""
 fig, ax = plt.subplots(1, 1)
-ax.imshow(image, origin='bottom', extent=(x.min(), x.max(), y.min(), y.max()))
+ax.imshow(image, extent = (x.min(), x.max(), y.min(), y.max()))
 ax.contour(x, y, data_fitted.reshape(x_pixels, y_pixels), 5, colors='w', linewidths = 1.5)
 ax.set_xlabel('pixels x')
 ax.set_ylabel('pixels y')
 ax.set_title('Normalized intensity and 2D gaussian fit')
+plt.savefig('FittedSpot.png', dpi = 500, tigh_layout = True)
 plt.show()
+
