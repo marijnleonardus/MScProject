@@ -1,0 +1,23 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Jul  8 11:13:54 2021
+
+@author: Marijn Venderbosch
+
+This script loads a mat file and finds the camera frame raw data from it.
+"""
+
+import numpy as np
+import scipy.io
+
+def load_and_save(mat_file):
+    mat_file = scipy.io.loadmat(mat_file)
+    
+    # the cam_frame entry contains the raw camera data
+    cam_frame = mat_file['cam_frame']
+    
+    # save
+    np.save('cam_frame_array', cam_frame)
+    return cam_frame
+
+load_and_save('one to be sure.mat')
