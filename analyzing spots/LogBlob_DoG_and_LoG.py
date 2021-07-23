@@ -33,6 +33,8 @@ blobs_dog[:, 2] = blobs_dog[:, 2] * np.sqrt(2)
 blobs_list = [blobs_log, blobs_dog]
 colors = ['red', 'red']
 titles = ['Laplacian of Gaussian', 'Difference of Gaussian']
+
+# Zip the data for the LoG and Dog in a single variable
 sequence = zip(blobs_list, colors, titles)
 
 # Make a plot for both LoG and DoG images
@@ -41,14 +43,19 @@ ax = axes.ravel()
 
 # Plot original image and overlay with circles on spots where blobs are detected
 # Radii or cicles are from the gaussian kernels that detected them
+
+# First sum over the plots to make, in this case 2
 for index, (blobs, color, title) in enumerate(sequence):
     ax[index].set_title(title)
     ax[index].imshow(image)
+    
+    # Next sum over the blobs that are detected per algorithm/plot
     for blob in blobs:
         y, x, r = blob
-        c = plt.Circle((x, y), r, color = color, linewidth = 0.5, fill=False)
+        c = plt.Circle((x, y), r, color = color, linewidth = 0.5, fill = False)
         ax[index].add_patch(c)
     ax[index].set_axis_off()
 
+# Save and show
 plt.savefig('LoG_vs_DoG.png', dpi = 500, tight_layout = True)
 plt.show()
