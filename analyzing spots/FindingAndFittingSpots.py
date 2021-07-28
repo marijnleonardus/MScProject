@@ -1,0 +1,307 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Jul 26 15:19:30 2021
+
+@author: Marijn Venderbosch
+
+This cript merges the following scripts in a single file:
+    LoadMatSaveCamFrame.py
+    LogBlog_LoG_Crosses.py
+    FitSpots.py
+    PlotAndFitHistogram.py
+"""
+
+# Libraries used
+import numpy as np
+import scipy.io
+from skimage.feature import blob_log
+import matplotlib.pyplot as plt
+from scipy import optimize 
+from scipy.stats import norm
+
+""""This windows contains the variables that need to be edited, rest of script
+does not have to be edited"""
+# Number of spots that we make, to check if spot detection worked
+number_spots_expected = 9
+# Location of .mat data file
+mat_file_location = 'files/correct intensity averaged.mat'
+# Threshold on how sensitive spot detection is
+threshold = 0.2
+# How many pixels do we crop around the spot maxima locations
+cropping_range = 10
+
+"""" The following function will take the .mat file and export a grayscale numpy array
+with similar dimensions as the accompanying screenshot"""
+def load_and_save(mat_file):
+    mat_file = scipy.io.loadmat(mat_file)
+    
+    # the cam_frame entry contains the raw camera data
+    cam_frame = mat_file['cam_frame']
+    
+    # Crop the camera window to the region of interest, such that the dimensions
+    # match the screenshot that is saved as well. The coordinates used to crop 
+    # the screenshot are stored in the .mat directory
+    # coordinates need to convert from a 1x1 array to an integer
+    cam_x_min = int(mat_file['cam_x_min'])
+    cam_x_max = int(mat_file['cam_x_max'])
+
+    cam_y_min = int(mat_file['cam_y_min'])
+    cam_y_max = int(mat_file['cam_y_max'])
+    
+    # Cropping the array using the provided coordinates
+    cam_frame_cropped = cam_frame[cam_x_min : cam_x_max , cam_y_min : cam_y_max]
+    
+    # Save cropped frame as numpy array
+    np.save('files/cam_frame_array_cropped', cam_frame_cropped)
+ 
+# execute function. Insert in brackets the .mat filename
+load_and_save(mat_file_location)
+
+"""The following part will detect maxima using the Laplacian of Gaussian algorithm"""
+
+# Load image from script 'loadmatSaveCamFrame.py'. 
+# Image is cropped to region of interest
+# Transpose because camera is rotated
+image_transposed = np.load('files/cam_frame_array_cropped.npy')
+image = np.transpose(image_transposed)
+
+# Use LoG blog detection. 
+# Max_sigma is the max. standard deviation of the Gaussian kernel used. 
+# Num_sigma the number of intermediate steps in sigma.
+# Threshold determines how easily blobs are detected. 
+
+spots_LoG = blob_log(image, max_sigma = 30, num_sigma = 10, threshold = threshold)
+# Save result to be used by other script
+np.save('files/spots_LoG', spots_LoG)
+
+# Check if expected amount of spots is detected
+
+number_spots_found = spots_LoG.shape[0]
+if number_spots_expected != number_spots_found:
+    print('Error: spot finding did not find the expected number of spots')
+
+# Compute radii in the 3rd column by multipling with sqrt(2)
+spots_LoG[:, 2] = spots_LoG[:, 2] * np.sqrt(2)
+
+# Find maxima locations and sizes. x and y are swapped becaues tranposed
+maxima_y_coordinates = spots_LoG[:, 0]
+maxima_x_coordinates = spots_LoG[:, 1]
+# Increase sizes crosses for better visibility
+factor = 5
+sizes = spots_LoG[:, 2] * factor
+
+# Initialize plot
+fig, axes = plt.subplots(1, 1, figsize=(5, 4))
+
+# Plot original image and overlay with crosses on spots where blobs are detected
+# Radii or cicles are from the gaussian kernels that detected them
+axes.set_title('Laplacian of Gaussian Spots')
+axes.set_xlabel('Pixels')
+axes.set_ylabel('Pixels')
+axes.imshow(image)
+axes.scatter(maxima_x_coordinates , maxima_y_coordinates, marker = 'x', s = sizes, color = 'r', linewidth = 1)
+
+# Saving and showing
+plt.savefig('exports/SpotsFoundUsingLoG.png', dpi = 500, tight_layout = True)
+
+"""This script crops the spots around the locatins found by the LoG algorithm. 
+Subsequently it fits 2D gaussians around the spot locations and plots them
+"""
+
+# Import image as well as spot locations as found by LoG
+image = np.load('files/cam_frame_array_cropped.npy')
+spot_locations = np.load('files/spots_LoG.npy')
+
+# Crop size: the amount of pixels 
+crop_size_pixels = 2 * cropping_range + 1
+
+# x and y maxima. Transposed so y is the first column
+spots_y_coordinates = spot_locations[:, 0]
+spots_x_coordinates = spot_locations[:, 1]
+
+# Amount spots
+amount_spots = len(spots_x_coordinates)
+
+# Find the lower and upper limits for x and y using the aforemenionted cropping range
+# Force every entry to be an integer
+lower_limit_x = list(spots_x_coordinates - cropping_range)
+lower_limit_x = [int(item) for item in lower_limit_x]
+
+upper_limit_x = list(spots_x_coordinates + cropping_range + 1)
+upper_limit_x = [int(item) for item in upper_limit_x]
+
+lower_limit_y = list(spots_y_coordinates - cropping_range)
+lower_limit_y = [int(item) for item in lower_limit_y]
+
+upper_limit_y = list(spots_y_coordinates + cropping_range + 1)
+upper_limit_y = [int(item) for item in upper_limit_y]
+
+# Define number of subplots to make. E.g. for 9 subplots we want 3 x 3 to we take the 
+# square root of the number of subplots
+amount_subplots = int(np.sqrt(amount_spots))
+
+# Normalization
+maximum_spot_intensity = np.max(image)
+
+# Make an empty list, each entry being an empty array 
+spots_cropped = [0] * amount_spots
+
+# Crop around each individual spot and store in the list
+for k in range(amount_spots):
+    spots_cropped[k] = image[lower_limit_x[k]:upper_limit_x[k] , lower_limit_y[k]:upper_limit_y[k]]
+    # normalize
+    spots_cropped[k] = spots_cropped[k] / maximum_spot_intensity    
+ 
+# Pixel 1D matrices (discreet)
+pixels_x = np.arange(0, crop_size_pixels, 1)
+pixels_y = np.arange(0, crop_size_pixels, 1)
+# 2D matrix
+x, y = np.meshgrid(pixels_x, pixels_y)
+
+def two_D_gaussian(X, amplitude, x0, y0, sigma_x, sigma_y):
+    # We define the function to fit: a particular example of a 2D gaussian
+    # indepdent variables x,y are passed as a single variable X (curve_fit only 
+    # accepts 1D fitting, therefore the result is raveled 
+    x, y = X
+    x0 = float(x0)
+    yo = float(y0)    
+    exponent = -1 / (2 * sigma_x)**2 * (x - x0)**2 + -1 / (2 * sigma_y)**2 * (y - y0)**2
+    intensity = amplitude * np.exp(exponent)
+    return intensity.ravel()
+
+# Initial values. The fitting algorithm needs an initial guess. Esimated from 
+# plot of the spot. 
+initial_guess = (1, cropping_range, cropping_range, cropping_range / 3, cropping_range / 3)
+
+# In the for loop, every iteration we want to store data
+# We need to initialize empty lists to store these variables. All variables are intially the
+# same empty list with dimensions equal to the amount of spots. 
+spot_raveled = max_Gauss_locations = [0] * amount_spots
+
+# Initialize plot o
+fig, axes = plt.subplots(amount_subplots, amount_subplots, figsize = (5, 6), sharex = True, sharey = True)
+fig.suptitle('Spots Cropped Around Maxima (pixels)')
+# To be able to sum over axes it needs to be raveled
+ax = axes.ravel()
+
+# Initilize empty list to fit all paramters in. Because it is appended each iteration, it
+# can start empty
+fit_parameters = []
+trapdepth_list = []
+sigma_list = []
+
+# For each picture do a 2D Gaussian fit and plot them
+for j in range(amount_spots):
+    # the images containing the spots need to be raveled 
+    # the 2D fit can only iterate over one direction
+    spot_raveled[j] = spots_cropped[j].ravel()
+    
+    # Perform the 2D fit, using the Gaussian function and initial guess
+    popt, pcov = optimize.curve_fit(two_D_gaussian, (x, y), spot_raveled[j], p0 = initial_guess)
+    
+    # Store invididual fits 'popt' in a single variable containing all data over all the spots
+    fit_parameters.append(popt)
+    # Store in single variable containing all data: fit_parameters
+    # not to be confused with 'params' which does not iterate: this is only from one fit
+    # Store sigma, trap depth as well as max. locations
+    sigma_r = 0.5 * (popt[3] + popt[4])
+    sigma_list.append(sigma_r)
+    
+    trapdepth_list.append(popt[0])
+    max_Gauss_locations[j] = [popt[1], popt[2]]
+    
+    #plotting
+    ax[j].imshow(spots_cropped[j])
+    # Title: index but starting from 1 instead of 0 so add 1
+    ax[j].set_title(j+1)
+    
+    # Plot circles with correct center and sigma. 
+    # Sigma is average of x and y, but also multiplied with 2 becaues its 1/e^2
+    circle_j = plt.Circle((popt[1], popt[2]), (popt[3] + popt[4]) , color = 'r', fill = False, linewidth = 1)
+    ax[j].add_patch(circle_j)
+    
+    # Plot crosses at center locations
+    # Radius is set to an arbitrarily small number, only its location is important
+    center_j = plt.Circle((popt[1], popt[2]), 0.3, color = 'r', fill = True)
+    ax[j].add_patch(center_j)
+    
+# Because we used lists to append, we need to convert to numpy arrays
+sigma_matrix = np.array(sigma_list)
+trapdepth_matrix = np.array(trapdepth_list)
+          
+# Saving and showing    
+plt.savefig('exports/SpotsCropped_range10.png', dpi = 500)
+
+"""The following script will plot histograms of the obtained beamwidths and 
+trap depths, as well as finding the averages and spreads in them."""
+
+# compute beam widths
+beam_width_pixels = 2 * sigma_matrix 
+
+# magnification from newport objective. This is uncalibrated. 
+magnification = 60
+
+# pixels are 4.65 micron. Magnification onto camera is 60X
+# 2*sigma corresponds to the 1/e^2 radius
+beamwidth_microns = beam_width_pixels * 4.65 / 60
+
+# Obtain average and spreads in beamwidth and trapdepth by fitting data with a Gaussian
+mu_beam_width, stddev_beam_width = norm.fit(beamwidth_microns)
+mu_trap_depth, stddev_trap_depth = norm.fit(trapdepth_matrix)
+
+# Histogram plots
+# Number of bins: increase for more spots. Takes square root of number of spots and
+# rounds to nearest integer.
+n_bins = int(np.sqrt(amount_spots))
+fig, (ax1, ax2) = plt.subplots(1, 2, tight_layout = True)
+
+# Plot histograms: normalized using 'density' option
+ax1.hist(beamwidth_microns, bins = n_bins, hatch = '/', density = True)
+ax2.hist(trapdepth_matrix, bins = n_bins, hatch = '/', density = True)
+
+# Get same limits for Gausian as plot range
+xmin_beamwidth, xmax_beamwidth = ax1.get_xlim()
+xmin_trapdepth, xmax_trapdepth = ax2.get_xlim()
+
+# Get a stepsize for the Normal distribution. 10^2 should do
+number_steps = 100
+x_beamwidth = np.linspace(xmin_beamwidth, xmax_beamwidth, number_steps)
+x_trapdepth = np.linspace(xmin_trapdepth, xmax_trapdepth, number_steps)
+
+# Generate the normal distribution data using the norm.pdf function from scipy.stat
+normal_distribution_beamwidth = norm.pdf(x_beamwidth, mu_beam_width, stddev_beam_width)
+normal_distribution_trapdepth = norm.pdf(x_trapdepth, mu_trap_depth, stddev_trap_depth)
+
+# We want to use the result in the titles. But there are too many digits. 
+# Round to 2 significant digits.
+# Print result for easy verify of correctness
+beamwidth_final =  "%0.*f"%(2 , mu_beam_width)
+beamwidth_final_spread = "%0.*f"%(2 , stddev_beam_width)
+print("1/e^2 radius is: "+ str(beamwidth_final))
+
+trapdepth_final = "%0.*f"%(2 , mu_trap_depth)
+trapdepth_spread = "%0.*f"%(2 , stddev_trap_depth)
+# Print relative error, multiply times 100 for percentage
+trapdepth_spread_relative = "%0.*f"%(1, 100* stddev_trap_depth / mu_trap_depth)
+print("Trap depth relative error is: "+ str(trapdepth_spread_relative)+"%")
+
+# Plot the normal distributions. 
+ax1.plot(x_beamwidth, normal_distribution_beamwidth, 'r--', linewidth = 2, color = 'r')
+ax2.plot(x_trapdepth, normal_distribution_trapdepth, 'r--', linewidth = 2, color = 'r')
+
+# Edit labels, titles
+ax1.set_xlabel(r'$1/e^2$ radius [$\mu$m]')
+ax1.set_yticklabels([])
+ax1.set_ylabel('Normalized counts [a.u.]')
+ax1.set_title(r'$w =$ (' + str(beamwidth_final) + r'$\pm$' + str(beamwidth_final_spread) + r') $\mu$m')
+
+ax2.set_xlabel('Normalized Trap Depth [a.u.]')
+ax2.set_yticklabels([])
+ax2.set_title(r'$U_0 =$ (' + str(trapdepth_final) + r'$\pm$' + str(trapdepth_spread) + r') [a.u.]')
+
+# Save plot
+plt.savefig('exports/FittedHistograms.png', dpi = 500, tight_layout = True)
+
+# Show all plots
+plt.show()
+
