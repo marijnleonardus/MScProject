@@ -19,6 +19,8 @@ from skimage.feature import blob_log
 import matplotlib.pyplot as plt
 from scipy import optimize 
 from scipy.stats import norm
+from mpl_toolkits import mplot3d
+from matplotlib import cm
 
 """"This windows contains the variables that need to be edited, rest of script
 does not have to be edited"""
@@ -151,7 +153,8 @@ spots_cropped = [0] * amount_spots
 
 # Crop around each individual spot and store in the list
 for k in range(amount_spots):
-    spots_cropped[k] = image[lower_limit_x[k]:upper_limit_x[k] , lower_limit_y[k]:upper_limit_y[k]]
+    spots_cropped[k] = image[lower_limit_x[k]:upper_limit_x[k] ,
+                             lower_limit_y[k]:upper_limit_y[k]]
     # normalize
     spots_cropped[k] = spots_cropped[k] / maximum_spot_intensity    
  
@@ -201,7 +204,10 @@ for j in range(amount_spots):
     spot_raveled[j] = spots_cropped[j].ravel()
     
     # Perform the 2D fit, using the Gaussian function and initial guess
-    popt, pcov = optimize.curve_fit(two_D_gaussian, (x, y), spot_raveled[j], p0 = initial_guess)
+    popt, pcov = optimize.curve_fit(two_D_gaussian,
+                                    (x, y),
+                                    spot_raveled[j],
+                                    p0 = initial_guess)
     
     # Store invididual fits 'popt' in a single variable containing all data over all the spots
     fit_parameters.append(popt)
@@ -211,11 +217,13 @@ for j in range(amount_spots):
     sigma_list.append(sigma_r)
     trapdepth_list.append(popt[0])
     # Store peak middle locations. These are deviations from the LoG locations (sub-pixel)
-    max_Gauss_locations_list[j] = [popt[1] - cropping_range, popt[2] - cropping_range]
+    max_Gauss_locations_list[j] = [popt[1] - cropping_range,
+                                   popt[2] - cropping_range]
     
     # Plotting
     # Plot images around (0,0) instead of origin in upper left corner. 
-    extent = [-cropping_range ,cropping_range , -cropping_range, cropping_range]
+    extent = [-cropping_range ,cropping_range ,
+              -cropping_range, cropping_range]
     # Extend ensures axes go from - cropping_range to + cropping_range
     ax[j].imshow(spots_cropped[j], extent = extent)
     # Title: index but starting from 1 instead of 0 so add 1
@@ -228,7 +236,11 @@ for j in range(amount_spots):
     
     # Plot crosses at center locations. Subtract cropping range to center (0,0)
     # Radius is set to an arbitrarily small number, only its location is important
-    center_j = plt.Circle((popt[1] - cropping_range, popt[2]- cropping_range), 0.3, color = 'r', fill = True)
+    center_j = plt.Circle((popt[1] - cropping_range,
+                           popt[2]- cropping_range),
+                          0.3,
+                          color = 'r',
+                          fill = True)
     ax[j].add_patch(center_j)
     
     # We are interested in the quality of the fit: the R_squared. 
@@ -255,6 +267,26 @@ print("Average r^2 is: " + str(mu_r_squared))
 
 # Saving and showing    
 plt.savefig('exports/SpotsCropped_range10.png', dpi = 500)
+
+"""We want to export one 3d image of the fit of G(x,y) to see how it went"""
+# Initialize figure
+fig =plt.figure()
+ax = plt.axes(projection='3d')
+
+# Plot data from camera as dots
+ax.scatter3D(x,y,spots_cropped[0],
+             color = 'black',
+             s = 0.7)
+
+# Plot gaussian fit 
+first_peak_parameters = fit_parameters[0]
+first_peak = two_D_gaussian((x,y),*first_peak_parameters).reshape(2*cropping_range+1,2*cropping_range+1)
+ax.plot_surface(x,y,first_peak,
+                rstride = 1,
+                cstride = 1,
+                alpha = 0.5,
+                cmap = cm.viridis)
+ax.view_init(30,50)
 
 # We want to store the exact spot locations in (pixels_x, pixels_y), but sub-pixel from fits
 def store_max_peaks_subpixel(list_input):
@@ -380,5 +412,4 @@ plt.savefig('exports/FittedHistograms.png', dpi = 500, tight_layout = True)
 
 # Show all plots
 plt.show()
-
 
