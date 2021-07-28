@@ -4,11 +4,12 @@ Created on Mon Jul 26 15:19:30 2021
 
 @author: Marijn Venderbosch
 
-This cript merges the following scripts in a single file:
-    LoadMatSaveCamFrame.py
-    LogBlog_LoG_Crosses.py
-    FitSpots.py
-    PlotAndFitHistogram.py
+This script
+    - Takes raw camera data and saves region of interest
+    - Detects spot using the laplacian of Gaussian algorithm
+    - Crops regions around spots
+    - Fits 2D Gaussians on spots
+    - Spots histograms of beam widths and trap depths 
 """
 
 # Libraries used
@@ -176,7 +177,7 @@ initial_guess = (1, cropping_range, cropping_range, cropping_range / 3, cropping
 # In the for loop, every iteration we want to store data
 # We need to initialize empty lists to store these variables. All variables are intially the
 # same empty list with dimensions equal to the amount of spots. 
-spot_raveled = max_Gauss_locations = [0] * amount_spots
+spot_raveled = max_Gauss_locations_list = [0] * amount_spots
 
 # Initialize plot o
 fig, axes = plt.subplots(amount_subplots, amount_subplots, figsize = (5, 6), sharex = True, sharey = True)
@@ -202,35 +203,88 @@ for j in range(amount_spots):
     # Store invididual fits 'popt' in a single variable containing all data over all the spots
     fit_parameters.append(popt)
     # Store in single variable containing all data: fit_parameters
-    # not to be confused with 'params' which does not iterate: this is only from one fit
     # Store sigma, trap depth as well as max. locations
     sigma_r = 0.5 * (popt[3] + popt[4])
     sigma_list.append(sigma_r)
-    
     trapdepth_list.append(popt[0])
-    max_Gauss_locations[j] = [popt[1], popt[2]]
+    # Store peak middle locations. These are deviations from the LoG locations (sub-pixel)
+    max_Gauss_locations_list[j] = [popt[1] - cropping_range, popt[2] - cropping_range]
     
-    #plotting
-    ax[j].imshow(spots_cropped[j])
+    # Plotting
+    # Plot images around (0,0) instead of origin in upper left corner. 
+    extent = [-cropping_range ,cropping_range , -cropping_range, cropping_range]
+    # Extend ensures axes go from - cropping_range to + cropping_range
+    ax[j].imshow(spots_cropped[j], extent = extent)
     # Title: index but starting from 1 instead of 0 so add 1
     ax[j].set_title(j+1)
     
     # Plot circles with correct center and sigma. 
     # Sigma is average of x and y, but also multiplied with 2 becaues its 1/e^2
-    circle_j = plt.Circle((popt[1], popt[2]), (popt[3] + popt[4]) , color = 'r', fill = False, linewidth = 1)
+    circle_j = plt.Circle((popt[1] - cropping_range, popt[2] - cropping_range), (popt[3] + popt[4]) , color = 'r', fill = False, linewidth = 1)
     ax[j].add_patch(circle_j)
     
-    # Plot crosses at center locations
+    # Plot crosses at center locations. Subtract cropping range to center (0,0)
     # Radius is set to an arbitrarily small number, only its location is important
-    center_j = plt.Circle((popt[1], popt[2]), 0.3, color = 'r', fill = True)
+    center_j = plt.Circle((popt[1] - cropping_range, popt[2]- cropping_range), 0.3, color = 'r', fill = True)
     ax[j].add_patch(center_j)
     
 # Because we used lists to append, we need to convert to numpy arrays
 sigma_matrix = np.array(sigma_list)
 trapdepth_matrix = np.array(trapdepth_list)
-          
+
 # Saving and showing    
 plt.savefig('exports/SpotsCropped_range10.png', dpi = 500)
+
+# We want to store the exact spot locations in (pixels_x, pixels_y), but sub-pixel from fits
+def store_max_peaks_subpixel(list_input):
+    # Convert to numpy array first from list
+    max_Gauss_locations_array = np.array(list_input)
+
+    # Store x,y subpixel locations
+    max_Gauss_locations_subpixels_x = maxima_x_coordinates + max_Gauss_locations_array[:, 0]
+    max_Gauss_locations_subpixels_y = maxima_y_coordinates + max_Gauss_locations_array[:, 1]
+
+    # Store in single array
+    max_Gauss_locations_subpixels = np.column_stack((max_Gauss_locations_subpixels_x, max_Gauss_locations_subpixels_y))
+    return max_Gauss_locations_subpixels
+
+# Call function and store result in variable
+max_Gauss_locations_subpixels = store_max_peaks_subpixel(max_Gauss_locations_list)
+
+"""The following part computes the spacing of the spots in x and y"""
+# Dimension: array is d x d where d is dimension
+dimension = int(np.sqrt(amount_spots))
+
+def spacing_calculator(locs):
+    # Initialize empty matices. xdif is initially longer but later stuff will be omitted          
+
+    x_spacing_overfill = np.zeros(amount_spots - 1)
+    y_spacing = np.zeros(amount_spots - dimension)
+    
+    # Compute euclidean space between iterative points
+    for k in range(amount_spots - 1):
+        x_spacing_overfill[k] = np.sqrt((locs[k + 1, 0] - locs[k, 0])**2 + (locs[k + 1, 1] - locs[k, 1])**2)
+    
+    # x_spacing_overfill contains too many rows. As we jump to the next row in the array the calculation doesnt
+    # make sense. For a 3x3 array e.g. we remove row 2, 5, 8 using np.delete()
+    x_spacing = np.delete(x_spacing_overfill, list(range(2, x_spacing_overfill.shape[0], 3)), axis = 0)
+        
+    # y_spacing does contain the right amount, we just skip the calculation over the last row
+    # So we decrease the stepper by the dimension size
+    for k in range(amount_spots - dimension):
+        y_spacing[k] = np.sqrt((locs[k + 3, 0] - locs[k, 0])**2 + (locs[k + 3, 1] - locs[k, 1])**2)
+    
+    return x_spacing, y_spacing
+        
+# Call function. Save result in arrays x_spacing and y_spacing respectively 
+x_spacing, y_spacing = spacing_calculator(max_Gauss_locations_subpixels)
+
+# Calculate average and spread in spacings
+mu_x_spacing, stddev_x_spacing = norm.fit(x_spacing)
+mu_y_spacing, stddev_y_spacing = norm.fit(y_spacing)  
+
+# Calculate ratio between x and y spacing 
+ratio_x_y_spacing = mu_y_spacing / mu_x_spacing      
 
 """The following script will plot histograms of the obtained beamwidths and 
 trap depths, as well as finding the averages and spreads in them."""
