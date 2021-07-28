@@ -30,6 +30,8 @@ mat_file_location = 'files/correct intensity averaged.mat'
 threshold = 0.2
 # How many pixels do we crop around the spot maxima locations
 cropping_range = 10
+# magnification from newport objective. This is uncalibrated. 
+magnification = 60
 
 """" The following function will take the .mat file and export a grayscale numpy array
 with similar dimensions as the accompanying screenshot"""
@@ -190,6 +192,7 @@ ax = axes.ravel()
 fit_parameters = []
 trapdepth_list = []
 sigma_list = []
+r_squared_list = []
 
 # For each picture do a 2D Gaussian fit and plot them
 for j in range(amount_spots):
@@ -228,9 +231,27 @@ for j in range(amount_spots):
     center_j = plt.Circle((popt[1] - cropping_range, popt[2]- cropping_range), 0.3, color = 'r', fill = True)
     ax[j].add_patch(center_j)
     
+    # We are interested in the quality of the fit: the R_squared. 
+    # residuals = ydata - f(xdata, *popt) where popt are fit 
+    # We reshape the output of the 2D gaussian to a square array
+    residuals = spots_cropped[j] - two_D_gaussian((x,y), *popt).reshape(2*cropping_range + 1, 2*cropping_range + 1)
+    # ss_res is the sum over all invididual residuals, square to keep positive numbers
+    ss_res = np.sum(residuals**2)
+    # Total sum of squares is the sum over (ydata-mean(ydata))^2
+    ss_tot = np.sum((spots_cropped[j] - np.mean(spots_cropped[j]))**2)
+    # Definition of the R^2
+    r_squared_list.append(1- (ss_res/ ss_tot))
+    
 # Because we used lists to append, we need to convert to numpy arrays
 sigma_matrix = np.array(sigma_list)
 trapdepth_matrix = np.array(trapdepth_list)
+r_squared_matrix = np.array(r_squared_list)
+
+# Find average and spread in R^2
+mu_r_squared, stddev_r_squared = norm.fit(r_squared_matrix)
+
+# Print result for convenience
+print("Average r^2 is: " + str(mu_r_squared))
 
 # Saving and showing    
 plt.savefig('exports/SpotsCropped_range10.png', dpi = 500)
@@ -279,21 +300,22 @@ def spacing_calculator(locs):
 # Call function. Save result in arrays x_spacing and y_spacing respectively 
 x_spacing, y_spacing = spacing_calculator(max_Gauss_locations_subpixels)
 
+# Convert from pixels to microns taking into account magnification
+x_spacing_microns = x_spacing * 4.65 / magnification
+y_spacing_microns = y_spacing * 4.65 / magnification
+
 # Calculate average and spread in spacings
-mu_x_spacing, stddev_x_spacing = norm.fit(x_spacing)
-mu_y_spacing, stddev_y_spacing = norm.fit(y_spacing)  
+mu_x_spacing_microns, stddev_x_spacing_microns = norm.fit(x_spacing_microns)
+mu_y_spacing_microns, stddev_y_spacing_microns = norm.fit(y_spacing_microns)  
 
 # Calculate ratio between x and y spacing 
-ratio_x_y_spacing = mu_y_spacing / mu_x_spacing      
+ratio_x_y_spacing = mu_y_spacing_microns / mu_x_spacing_microns   
 
 """The following script will plot histograms of the obtained beamwidths and 
 trap depths, as well as finding the averages and spreads in them."""
 
 # compute beam widths
 beam_width_pixels = 2 * sigma_matrix 
-
-# magnification from newport objective. This is uncalibrated. 
-magnification = 60
 
 # pixels are 4.65 micron. Magnification onto camera is 60X
 # 2*sigma corresponds to the 1/e^2 radius
@@ -358,4 +380,5 @@ plt.savefig('exports/FittedHistograms.png', dpi = 500, tight_layout = True)
 
 # Show all plots
 plt.show()
+
 
