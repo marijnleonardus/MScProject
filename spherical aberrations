@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Aug  5 18:00:59 2021
+
+@author: marijn
+
+spherical aberration
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+theta = np.pi / 4
+d = np.linspace(0, 1, 1000)
+n = 1.522
+
+delta = d * 1 - np.cos(theta) / n * np.sqrt(1 - np.sin(theta)**2 / n**2) 
+
+plt.grid()
+plt.plot(d, delta)
