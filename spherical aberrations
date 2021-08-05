@@ -1,21 +1,36 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Aug  5 18:00:59 2021
+Created on Thu Aug  5 22:54:24 2021
 
 @author: marijn
-
-spherical aberration
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-theta = np.pi / 4
-d = np.linspace(0, 1, 1000)
+# parameters
+# refractive index glass
 n = 1.522
+# largest ray angle for NA = 0.5
+t = np.pi / 4
+t0 = np.tan(t)
+# definition of refractive index used in some texts
+nr = 1 / n
 
-delta = d * 1 - np.cos(theta) / n * np.sqrt(1 - np.sin(theta)**2 / n**2) 
+# thickness matrix
+d = np.linspace(0, 0.51, 100)
 
-plt.grid()
-plt.plot(d, delta)
+# change in focus large angle rays
+df_MR = d - d*nr *(1-0.5*t0**2*(1-nr**2)+3/8*t0**4*(1-nr**2)**2)
+
+# change in focus paraxial rays
+df_PAR = d - d*nr
+# difference in focus between marginal and paraxial rays
+df = df_MR - df_PAR
+
+# plot
+fig, ax = plt.subplots(1, 1)
+ax.plot(d, df)
+ax.set_xlabel(r'Error in optical length $(nd)$ [mm]')
+ax.set_ylabel(r'Change in focus [m])')
