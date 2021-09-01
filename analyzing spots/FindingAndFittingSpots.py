@@ -25,15 +25,15 @@ from matplotlib import cm
 """"This windows contains the variables that need to be edited, rest of script
 does not have to be edited"""
 # Number of spots that we make, to check if spot detection worked
-number_spots_expected = 9
+number_spots_expected = 49
 # Location of .mat data file
-mat_file_location = 'files/correct intensity averaged.mat'
+mat_file_location = 'files/7x7.mat'
 # Threshold on how sensitive spot detection is
 threshold = 0.2
 # How many pixels do we crop around the spot maxima locations
-cropping_range = 10
+cropping_range = 12
 # magnification from newport objective. This is uncalibrated. 
-magnification = 60
+magnification = 50.2
 
 """" The following function will take the .mat file and export a grayscale numpy array
 with similar dimensions as the accompanying screenshot"""
@@ -171,7 +171,7 @@ def two_D_gaussian(X, amplitude, x0, y0, sigma_x, sigma_y):
     x, y = X
     x0 = float(x0)
     yo = float(y0)    
-    exponent = -1 / (2 * sigma_x)**2 * (x - x0)**2 + -1 / (2 * sigma_y)**2 * (y - y0)**2
+    exponent = -0.5 * (sigma_x)**(-2) * (x - x0)**2 - 0.5 * (sigma_y)**(-2) * (y - y0)**2
     intensity = amplitude * np.exp(exponent)
     return intensity.ravel()
 
@@ -227,7 +227,7 @@ for j in range(amount_spots):
     # Extend ensures axes go from - cropping_range to + cropping_range
     ax[j].imshow(spots_cropped[j], extent = extent)
     # Title: index but starting from 1 instead of 0 so add 1
-    ax[j].set_title(j+1)
+    ax[j].set_title(j + 1)
     
     # Plot circles with correct center and sigma. 
     # Sigma is average of x and y, but also multiplied with 2 becaues its 1/e^2
@@ -361,7 +361,7 @@ beam_width_pixels = 2 * sigma_matrix
 
 # pixels are 4.65 micron. Magnification onto camera is 60X
 # 2*sigma corresponds to the 1/e^2 radius
-beamwidth_microns = beam_width_pixels * 4.65 / 60
+beamwidth_microns = beam_width_pixels * 4.65 / magnification
 
 # Obtain average and spreads in beamwidth and trapdepth by fitting data with a Gaussian
 mu_beam_width, stddev_beam_width = norm.fit(beamwidth_microns)
