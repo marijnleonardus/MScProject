@@ -33,7 +33,7 @@ threshold = 0.2
 # How many pixels do we crop around the spot maxima locations
 cropping_range = 12
 # magnification from newport objective. This is uncalibrated. 
-magnification = 50.2
+magnification = 71.1
 
 """" The following function will take the .mat file and export a grayscale numpy array
 with similar dimensions as the accompanying screenshot"""
