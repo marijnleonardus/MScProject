@@ -33,7 +33,7 @@ threshold = 0.2
 # How many pixels do we crop around the spot maxima locations
 cropping_range = 12
 # magnification from newport objective. This is uncalibrated. 
-magnification = 71.1
+magnification = 71.14
 
 """" The following function will take the .mat file and export a grayscale numpy array
 with similar dimensions as the accompanying screenshot"""
@@ -367,6 +367,12 @@ beamwidth_microns = beam_width_pixels * 4.65 / magnification
 mu_beam_width, stddev_beam_width = norm.fit(beamwidth_microns)
 mu_trap_depth, stddev_trap_depth = norm.fit(trapdepth_matrix)
 
+# A problem is that the trap depth is now normalized to the highest value it achieves
+# So we once again 'normalize' such that the average is one. We call this 'unity' 
+trapdepth_matrix_unity = trapdepth_matrix / mu_trap_depth
+mu_trap_depth_unity = mu_trap_depth / mu_trap_depth
+stddev_trap_depth_unity = stddev_trap_depth / mu_trap_depth
+
 # Histogram plots
 # Number of bins: increase for more spots. Takes square root of number of spots and
 # rounds to nearest integer.
@@ -375,7 +381,7 @@ fig, (ax1, ax2) = plt.subplots(1, 2, tight_layout = True)
 
 # Plot histograms: normalized using 'density' option
 ax1.hist(beamwidth_microns, bins = n_bins, hatch = '/', density = True)
-ax2.hist(trapdepth_matrix, bins = n_bins, hatch = '/', density = True)
+ax2.hist(trapdepth_matrix_unity, bins = n_bins, hatch = '/', density = True)
 
 # Get same limits for Gausian as plot range
 xmin_beamwidth, xmax_beamwidth = ax1.get_xlim()
@@ -388,7 +394,7 @@ x_trapdepth = np.linspace(xmin_trapdepth, xmax_trapdepth, number_steps)
 
 # Generate the normal distribution data using the norm.pdf function from scipy.stat
 normal_distribution_beamwidth = norm.pdf(x_beamwidth, mu_beam_width, stddev_beam_width)
-normal_distribution_trapdepth = norm.pdf(x_trapdepth, mu_trap_depth, stddev_trap_depth)
+normal_distribution_trapdepth = norm.pdf(x_trapdepth, mu_trap_depth_unity, stddev_trap_depth_unity)
 
 # We want to use the result in the titles. But there are too many digits. 
 # Round to 2 significant digits.
@@ -397,10 +403,10 @@ beamwidth_final =  "%0.*f"%(2 , mu_beam_width)
 beamwidth_final_spread = "%0.*f"%(2 , stddev_beam_width)
 print("1/e^2 radius is: "+ str(beamwidth_final))
 
-trapdepth_final = "%0.*f"%(2 , mu_trap_depth)
-trapdepth_spread = "%0.*f"%(2 , stddev_trap_depth)
+trapdepth_final = "%0.*f"%(2 , mu_trap_depth_unity)
+trapdepth_spread = "%0.*f"%(2 , stddev_trap_depth_unity)
 # Print relative error, multiply times 100 for percentage
-trapdepth_spread_relative = "%0.*f"%(1, 100* stddev_trap_depth / mu_trap_depth)
+trapdepth_spread_relative = "%0.*f"%(1, 100* stddev_trap_depth_unity / mu_trap_depth_unity)
 print("Trap depth relative error is: "+ str(trapdepth_spread_relative)+"%")
 
 # Plot the normal distributions. 
