@@ -7,33 +7,55 @@ Created on Wed Sep  1 12:21:11 2021
 This script plots a 3d scan of the tweezer. 
 Dimensions are set using the scanning step size in z-direction
 and pixel size in the r direction
+
+Compare to theory result from 'defocus longitudinal' script
 """
 
-# import module
-import pandas as pd
+#%% Imports, variables
 import numpy as np
 import scipy.io
 from skimage.feature import blob_log
 import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator
+import scipy.optimize
 
 # mat file location
-mat_files_location = "./files/9 1 attempt/"
+mat_files_location = "./files/01/"
 
-# variable
-magnification = 50.3
+# variables
+lam = 780e-9
+k = 2 * np.pi / lam
+f = 4e-3
+R = 2e-3
+w_i = 2e-3
+magnification = 71.14
 pixel_size = 4.65
-threshold = 0.1
-number_spots_expected = 1
+threshold = 0.05
 # amount of space to see around the maximum location
-row_cropping_range = 20
+number_spots_expected = 1
+row_cropping_range = 35
 
-# z scan
+# z scan names of .mat files to import
 z_steps_per_image = 50
-z_start = -500
-z_stop = 500
-step = 0.0203
+z_start = -850
+z_stop = 0
+step = 0.00934
 
-# functions to call
+#%% Mathemetica result and PSF, theory results
+# in terms of dimenionless defocus paramter u = k dz R**2/f**2
+
+plot_range = 15e-6
+dz = np.linspace(-plot_range, plot_range, 1000)
+u = k * dz * R**2 / f**2
+
+intensity_defocus = (-2 * np.exp(1) * np.cos(u / 2) + np.exp(2) + 1) / (np.exp(2)* (u**2 + 4))
+intensity__defocus_normalized = intensity_defocus / np.max(intensity_defocus)
+
+# Rescale x axis
+dz_microns = dz * 10e5
+
+
+#%% function spot detection
 def spot_detection(image):
     spots_LoG = blob_log(image, max_sigma = 30, num_sigma = 10, threshold = threshold)
 
@@ -75,7 +97,9 @@ filename_list = list(map(str,
 # create empty list
 cam_frames = []
 rows = []
+longitudinal_profile = []
 
+#%% make 'sideview' image by sticking together individual camera images
 # append datasets into the list
 for i in range(len(filename_list)):
     mat_file = scipy.io.loadmat(mat_files_location + filename_list[i] + ".mat")
@@ -115,6 +139,11 @@ for i in range(len(filename_list)):
     # Store the final result that we want to keep, the intensity around the rows
     # as a function of z direction
     rows.append(row_cropped)
+    
+    # Save longitudal intensity
+    longitudinal = np.max(cam_frame)
+    longitudinal_profile.append(longitudinal)
+    
 
 # Convert list of rows to array (2D array: r,z)    
 array = np.transpose(np.array(rows))  
@@ -125,25 +154,89 @@ z_dimension = len(filename_list) * z_steps_per_image * step
 r_dimension = (2 * row_cropping_range + 1) * pixel_size / magnification
 aspect_ratio = r_dimension / z_dimension
 
+# Normalize longitudinal data
+longitudinal_normalized = longitudinal_profile / np.max(longitudinal_profile)
+
+# Make x axis for longitudinal plot
+x_longitudinal = np.linspace(-z_dimension / 2,
+                             z_dimension / 2,
+                             len(filename_list))
+
+#%% fitting
+# Fit longituninal_profile
+def gaussian(x, amplitude, x0, sigma):
+    # We define a gaussian to fit the data
+    exponent = -0.5 * (sigma)**(-2) * (x - x0)**2 
+    intensity = amplitude * np.exp(exponent)
+    return intensity
+
+# Fitting, we don't fit the entire plot, just the region around the waist
+popt, pcov = scipy.optimize.curve_fit(gaussian, 
+                                      x_longitudinal, longitudinal_normalized,
+                                      )
+
+fit_x = np.linspace(-2 / 3 * z_dimension, 2 / 3 * z_dimension, 100)
+fit_y = gaussian(fit_x, *popt)
+
+
+#%% plotting
 # Initialize plot
-fig, ax = plt.subplots(nrows = 1, ncols = 1)
-ax.set_aspect(0.1)
-ax.imshow(array,
+fig, (ax1,ax2) = plt.subplots(nrows = 2, 
+                              ncols = 1, 
+                              sharex = True,
+                              figsize = (6, 7))
+
+# Vertical distance between plots
+plt.subplots_adjust(hspace = 0)
+
+# The aspect ratio of the plot is fixed to calculated value to ensure spacing in r,z is the same
+ax1.set_aspect(aspect_ratio)
+# The aspect ratio of x,y axis is set to the same value
+ax1.imshow(array,
           aspect = 1,
           extent = [-z_dimension/2, z_dimension/2,
                     -r_dimension/2,r_dimension/2
               ])
-ax.xaxis.set_major_locator(plt.MultipleLocator(1))
-ax.set_xlabel(r'z-direction [$\mu$m]')
 
-ax.yaxis.set_major_locator(plt.MultipleLocator(1))
-ax.set_ylabel(r'Radial direction [$\mu$m]')
+# Ticks, labels first plot
+ax1.yaxis.set_major_locator(plt.MultipleLocator(1))
+ax1.yaxis.set_minor_locator(AutoMinorLocator(2))
+ax1.set_ylabel(r'Radial direction [$\mu$m]')
 
-# We really don't need the first and latest iamges
-ax.set_xlim(-8, 8)
+# Setting horizontal plot range
+ax1.set_xlim(-4, 4)
 
-# Saving
-plt.savefig('exports/3dscan_tweezer.pdf',
+# Longitudinal plot, secod plot
+
+
+
+# Plot against same horizontal coordinate
+ax2.grid()
+ax2.scatter(x_longitudinal, longitudinal_normalized, 
+            color = 'blue',
+            s = 6, 
+            marker = 'X'
+            )
+
+# Plots, ticks for second plot
+ax2.xaxis.set_major_locator(plt.MultipleLocator(1))
+ax2.xaxis.set_minor_locator(AutoMinorLocator(2))
+ax2.set_xlabel(r'z-direction [$\mu$m]')
+ax2.set_ylabel('Irradiance [a.u.]')
+
+# Plot fit
+ax2.plot(fit_x, fit_y, 
+         color = 'red',
+         linewidth = 1)
+
+ax2.plot(dz_microns, intensity__defocus_normalized)
+
+# only labels on bottom plot
+for ax in fig.get_axes():
+    ax.label_outer()
+
+#%% Saving
+plt.savefig('exports/4mmFScorrection01.pdf',
             dpi = 300, 
             tight_layout = True)
 
