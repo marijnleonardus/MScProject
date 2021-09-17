@@ -39,7 +39,7 @@ row_cropping_range = 35
 z_steps_per_image = 50
 z_start = -850
 z_stop = 0
-step = 0.00934
+step = 0.010585
 
 # plot range theory result
 plot_range = 15e-6
@@ -188,7 +188,7 @@ gaussian_fitted = gaussian(fit_x, *popt)
 # Initialize plot
 fig, (ax1 ,ax2) = plt.subplots(nrows = 2, 
                               ncols = 1, 
-                              figsize = (6,8),
+                              figsize = (4, 4.5),
                               sharex = True)
 
 # Vertical distance between plots
@@ -200,7 +200,7 @@ ax1.set_aspect(aspect_ratio)
 # The aspect ratio of x,y axis is set to the same value
 ax1.imshow(array,
           aspect = 1,
-          extent = [-z_dimension/2, z_dimension/2,
+          extent = [-z_dimension/2 - center_x_fit, z_dimension/2 - center_x_fit,
                     -r_dimension/2,r_dimension/2
               ])
 
@@ -234,14 +234,12 @@ for ax in fig.get_axes():
     
 ax2.plot(dz_microns, intensity__defocus_normalized)
 ax2.set_xlim(-4, 4)
-
-fig.tight_layout()
+ax2.set_ylim(0.2, 1.05)
+ax2.set_aspect(2.3)
 
 # Saving
 plt.savefig('exports/4mmFScorrection01.pdf',
             dpi = 300)
-
-
 
 """third plot. We plot separately because x range is different"""
 fig, ax = plt.subplots()
@@ -257,8 +255,6 @@ ax.set_xlim(-fitting_range, +fitting_range)
 ax.set_xlabel(r'Defocus [$\mu$m]')
 ax.set_ylabel(r'Intensity [a.u.]')
 ax.grid()
-
-
 
 #%% Saving
 plt.savefig('exports/4mmFScorrection01_lim_fitrange.pdf',
