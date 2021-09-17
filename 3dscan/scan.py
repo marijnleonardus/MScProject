@@ -216,7 +216,7 @@ ax1.set_xlim(-4, 4)
 # Longitudinal plot, second plot
 # Plot against same horizontal coordinate
 ax2.grid()
-ax2.scatter(x_longitudinal, longitudinal_normalized, 
+ax2.scatter(x_longitudinal - center_x_fit, longitudinal_normalized, 
             color = 'blue',
             s = 6, 
             marker = 'X'
@@ -234,6 +234,8 @@ for ax in fig.get_axes():
     
 ax2.plot(dz_microns, intensity__defocus_normalized)
 ax2.set_xlim(-4, 4)
+
+fig.tight_layout()
 
 # Saving
 plt.savefig('exports/4mmFScorrection01.pdf',
