@@ -41,18 +41,23 @@ z_start = -850
 z_stop = 0
 step = 0.00934
 
-#%% Mathemetica result and PSF, theory results
-# in terms of dimenionless defocus paramter u = k dz R**2/f**2
-
+# plot range theory result
 plot_range = 15e-6
 dz = np.linspace(-plot_range, plot_range, 1000)
-u = k * dz * R**2 / f**2
 
-intensity_defocus = (-2 * np.exp(1) * np.cos(u / 2) + np.exp(2) + 1) / (np.exp(2)* (u**2 + 4))
-intensity__defocus_normalized = intensity_defocus / np.max(intensity_defocus)
+#%% Mathemetica result and PSF, theory results
+def intensity_defocus(u):
+    # in terms of dimenionless defocus paramter u = k dz R**2/f**2
+    u = k * dz * R**2 / f**2
 
+    intensity_defocus = (-2 * np.exp(1) * np.cos(u / 2) + np.exp(2) + 1) / (np.exp(2)* (u**2 + 4))
+    intensity__defocus_normalized = intensity_defocus / np.max(intensity_defocus)
+    
+    return intensity__defocus_normalized
 # Rescale x axis
 dz_microns = dz * 10e5
+
+intensity__defocus_normalized = intensity_defocus(dz_microns)
 
 
 #%% function spot detection
@@ -70,9 +75,6 @@ def spot_detection(image):
     # Find maxima locations and sizes. x and y are swapped becaues tranposed
     maxima_y_coordinates = spots_LoG[:, 0]
     maxima_x_coordinates = spots_LoG[:, 1]
-    # Increase sizes crosses for better visibility
-    factor = 5
-    sizes = spots_LoG[:, 2] * factor
 
     # Initialize plot
     #fig, axes = plt.subplots(1, 1, figsize=(5, 4))
@@ -175,16 +177,17 @@ popt, pcov = scipy.optimize.curve_fit(gaussian,
                                       x_longitudinal, longitudinal_normalized,
                                       )
 
+center_x_fit = popt[1]
+
 fit_x = np.linspace(-2 / 3 * z_dimension, 2 / 3 * z_dimension, 100)
 fit_y = gaussian(fit_x, *popt)
 
 
 #%% plotting
 # Initialize plot
-fig, (ax1,ax2) = plt.subplots(nrows = 2, 
+fig, (ax1,ax2,ax3) = plt.subplots(nrows = 3, 
                               ncols = 1, 
-                              sharex = True,
-                              figsize = (6, 7))
+                              figsize = (6,11))
 
 # Vertical distance between plots
 plt.subplots_adjust(hspace = 0)
@@ -229,17 +232,54 @@ ax2.plot(fit_x, fit_y,
          color = 'red',
          linewidth = 1)
 
-ax2.plot(dz_microns, intensity__defocus_normalized)
+#ax2.plot(dz_microns, intensity__defocus_normalized)
 
 # only labels on bottom plot
 for ax in fig.get_axes():
     ax.label_outer()
+    
 
-#%% Saving
-plt.savefig('exports/4mmFScorrection01.pdf',
-            dpi = 300, 
-            tight_layout = True)
-
+dz_microns_centered = dz_microns + center_x_fit
+ax2.plot(dz_microns_centered, intensity__defocus_normalized)
 
 
 
+
+# Fit limited range
+sliced_indices = np.where((x_longitudinal <= 3) & (x_longitudinal >= -3)
+    )
+# Fitting, we don't fit the entire plot, just the region around the waist
+
+x_longitudinal_cropped = np.array(x_longitudinal[sliced_indices])
+longitudinal_normalized_cropped = np.array(longitudinal_normalized[sliced_indices])
+
+# Third axis: limted fit range and scaled x axis
+
+ax3.scatter(x_longitudinal_cropped, longitudinal_normalized_cropped, 
+            color = 'blue',
+            s = 6, 
+            marker = 'X'
+            )
+
+
+
+
+fitting_guess = [1, -0.4, 4]
+# Fitting, we don't fit the entire plot, just the region around the waist
+popt2, pcov2 = scipy.optimize.curve_fit(gaussian, x_longitudinal_cropped, longitudinal_normalized_cropped, p0 = fitting_guess)
+
+center_x_fit = popt[1]
+
+fit_x_lim = np.linspace(-2 / 3 * z_dimension, 2 / 3 * z_dimension, 100)
+fit_y_lim = gaussian(fit_x, *popt2)
+ax3.plot(fit_x_lim, fit_y_lim)
+ax3.set_xlim(-3, 3)
+
+ax3.set_xlabel(r'Defocus [$\mu$m]')
+ax3.set_ylabel(r'Intensity [a.u.]')
+
+
+# #%% Saving
+# plt.savefig('exports/4mmFScorrection01.pdf',
+#             dpi = 300, 
+#             tight_layout = True)
