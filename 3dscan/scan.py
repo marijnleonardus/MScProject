@@ -45,6 +45,9 @@ step = 0.00934
 plot_range = 15e-6
 dz = np.linspace(-plot_range, plot_range, 1000)
 
+# Only fit around waist, in microns
+fitting_range = 2.5
+
 #%% Mathemetica result and PSF, theory results
 def intensity_defocus(u):
     # in terms of dimenionless defocus paramter u = k dz R**2/f**2
@@ -75,17 +78,6 @@ def spot_detection(image):
     # Find maxima locations and sizes. x and y are swapped becaues tranposed
     maxima_y_coordinates = spots_LoG[:, 0]
     maxima_x_coordinates = spots_LoG[:, 1]
-
-    # Initialize plot
-    #fig, axes = plt.subplots(1, 1, figsize=(5, 4))
-
-    # Plot original image and overlay with crosses on spots where blobs are detected
-    # Radii or cicles are from the gaussian kernels that detected them
-    #axes.set_title('Laplacian of Gaussian Spots')
-    #axes.set_xlabel('Pixels')
-    #axes.set_ylabel('Pixels')
-    #axes.imshow(image)
-    #axes.scatter(maxima_x_coordinates , maxima_y_coordinates, marker = 'x', s = sizes, color = 'r', linewidth = 1)
     
     # return for next script
     maximum_locs = np.array([maxima_x_coordinates, maxima_y_coordinates])
@@ -165,6 +157,7 @@ x_longitudinal = np.linspace(-z_dimension / 2,
                              len(filename_list))
 
 #%% fitting
+
 # Fit longituninal_profile
 def gaussian(x, amplitude, x0, sigma):
     # We define a gaussian to fit the data
@@ -172,26 +165,36 @@ def gaussian(x, amplitude, x0, sigma):
     intensity = amplitude * np.exp(exponent)
     return intensity
 
+# Fitting x variable, more accurate
+fit_x = np.linspace(-2 / 3 * z_dimension, 2 / 3 * z_dimension, 100)
+
+# Fit limited range. Fitting range in um
+sliced_indices = np.where(
+    (x_longitudinal <= fitting_range) & (x_longitudinal >= -fitting_range)
+    )
 # Fitting, we don't fit the entire plot, just the region around the waist
-popt, pcov = scipy.optimize.curve_fit(gaussian, 
-                                      x_longitudinal, longitudinal_normalized,
-                                      )
+x_longitudinal_cropped = np.array(x_longitudinal[sliced_indices])
+longitudinal_normalized_cropped = np.array(longitudinal_normalized[sliced_indices])
+
+fitting_guess = [1, -0.4, 4] #amplitude, center, sigma
+# Fitting limited plot range
+popt, pcov = scipy.optimize.curve_fit(gaussian, x_longitudinal_cropped, longitudinal_normalized_cropped, p0 = fitting_guess)
 
 center_x_fit = popt[1]
 
-fit_x = np.linspace(-2 / 3 * z_dimension, 2 / 3 * z_dimension, 100)
-fit_y = gaussian(fit_x, *popt)
-
+gaussian_fitted = gaussian(fit_x, *popt)
 
 #%% plotting
 # Initialize plot
-fig, (ax1,ax2,ax3) = plt.subplots(nrows = 3, 
+fig, (ax1 ,ax2) = plt.subplots(nrows = 2, 
                               ncols = 1, 
-                              figsize = (6,11))
+                              figsize = (6,8),
+                              sharex = True)
 
 # Vertical distance between plots
-plt.subplots_adjust(hspace = 0)
+plt.subplots_adjust(hspace = 0.5)
 
+"""first plot: the tweezer scan"""
 # The aspect ratio of the plot is fixed to calculated value to ensure spacing in r,z is the same
 ax1.set_aspect(aspect_ratio)
 # The aspect ratio of x,y axis is set to the same value
@@ -209,10 +212,8 @@ ax1.set_ylabel(r'Radial direction [$\mu$m]')
 # Setting horizontal plot range
 ax1.set_xlim(-4, 4)
 
-# Longitudinal plot, secod plot
-
-
-
+"""second plot: the data for the tweezer scan"""
+# Longitudinal plot, second plot
 # Plot against same horizontal coordinate
 ax2.grid()
 ax2.scatter(x_longitudinal, longitudinal_normalized, 
@@ -227,59 +228,42 @@ ax2.xaxis.set_minor_locator(AutoMinorLocator(2))
 ax2.set_xlabel(r'z-direction [$\mu$m]')
 ax2.set_ylabel('Irradiance [a.u.]')
 
-# Plot fit
-ax2.plot(fit_x, fit_y, 
-         color = 'red',
-         linewidth = 1)
-
-#ax2.plot(dz_microns, intensity__defocus_normalized)
-
 # only labels on bottom plot
 for ax in fig.get_axes():
     ax.label_outer()
     
+ax2.plot(dz_microns, intensity__defocus_normalized)
+ax2.set_xlim(-4, 4)
 
-dz_microns_centered = dz_microns + center_x_fit
-ax2.plot(dz_microns_centered, intensity__defocus_normalized)
+# Saving
+plt.savefig('exports/4mmFScorrection01.pdf',
+            dpi = 300)
 
 
 
-
-# Fit limited range
-sliced_indices = np.where((x_longitudinal <= 3) & (x_longitudinal >= -3)
-    )
-# Fitting, we don't fit the entire plot, just the region around the waist
-
-x_longitudinal_cropped = np.array(x_longitudinal[sliced_indices])
-longitudinal_normalized_cropped = np.array(longitudinal_normalized[sliced_indices])
-
-# Third axis: limted fit range and scaled x axis
-
-ax3.scatter(x_longitudinal_cropped, longitudinal_normalized_cropped, 
+"""third plot. We plot separately because x range is different"""
+fig, ax = plt.subplots()
+ax.scatter(x_longitudinal_cropped, longitudinal_normalized_cropped, 
             color = 'blue',
             s = 6, 
             marker = 'X'
             )
 
+ax.plot(fit_x, gaussian_fitted)
+ax.set_xlim(-fitting_range, +fitting_range)
+
+ax.set_xlabel(r'Defocus [$\mu$m]')
+ax.set_ylabel(r'Intensity [a.u.]')
+ax.grid()
 
 
 
-fitting_guess = [1, -0.4, 4]
-# Fitting, we don't fit the entire plot, just the region around the waist
-popt2, pcov2 = scipy.optimize.curve_fit(gaussian, x_longitudinal_cropped, longitudinal_normalized_cropped, p0 = fitting_guess)
+#%% Saving
+plt.savefig('exports/4mmFScorrection01_lim_fitrange.pdf',
+            dpi = 300)
 
-center_x_fit = popt[1]
+waist = 2* popt[2]
+rayleigh = np.sqrt(2 * np.log(2)) * popt[2]
 
-fit_x_lim = np.linspace(-2 / 3 * z_dimension, 2 / 3 * z_dimension, 100)
-fit_y_lim = gaussian(fit_x, *popt2)
-ax3.plot(fit_x_lim, fit_y_lim)
-ax3.set_xlim(-3, 3)
-
-ax3.set_xlabel(r'Defocus [$\mu$m]')
-ax3.set_ylabel(r'Intensity [a.u.]')
-
-
-# #%% Saving
-# plt.savefig('exports/4mmFScorrection01.pdf',
-#             dpi = 300, 
-#             tight_layout = True)
+print('Fitted waist: '+ str(waist))
+print('Fitted rayleigh: ' + str(rayleigh))
