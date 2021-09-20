@@ -37,25 +37,28 @@ def optical_potential(U0, w0, zR, z, r):
 potential = optical_potential(1, 1, 1, z, r)
 
 # Plotting
-fig = plt.figure(figsize = (8,6))
+fig = plt.figure(figsize = (5,4))
 ax = fig.gca(projection = '3d')
 surf = ax.plot_surface(r ,z, potential,
                        cmap = cm.viridis, 
                        linewidth = 0, 
                        antialiased = False)
+ax.set_zlim(-1.1,0)
 cb = plt.colorbar(surf, 
                   ax = [ax], 
-                  shrink = 0.4, 
-                  aspect = 5, 
+                  shrink = 0.45, 
+                  aspect = 6, 
                   location ='left',
+                  ticks=[-1,-0.8,-0.6,-0.4,-0.2,0],
                   pad = 0)
+
 ax.set_xlabel(r'$r/w_0$')
 ax.set_ylabel(r'$z/z_R$')
 ax.set_zlabel(r'$U(r,z)/U_0$')
 ax.grid()
 
 # Saving
-plt.savefig('ODTdepth.pdf', 
+plt.savefig('ODTdepth.png', 
             bbox_inches='tight',
             pad_inches = 0,
             dpi = 500)
