@@ -13,10 +13,6 @@ import numpy as np
 import scipy.io
 from skimage.feature import blob_log
 import matplotlib.pyplot as plt
-from scipy import optimize 
-from scipy.stats import norm
-from mpl_toolkits import mplot3d
-from matplotlib import cm
 from scipy.special import jv
 
 """"This windows contains the variables that need to be edited, rest of script
@@ -53,9 +49,9 @@ def load_and_save(mat_file):
     return cam_frame_cropped
  
 # execute function. Insert in brackets the .mat filename
-image0 = load_and_save('files/0.mat')
-image01 = load_and_save('files/minus01.mat')
-image025 = load_and_save('files/minus025.mat')
+image0 = load_and_save('files/goodone.mat')
+#image01 = load_and_save('files/minus01.mat')
+#image025 = load_and_save('files/minus025.mat')
  
 """The following part will detect maxima using the Laplacian of Gaussian algorithm"""
 # Load image from script 'loadmatSaveCamFrame.py'. 
@@ -102,8 +98,8 @@ def spot_detection(image):
 
 # Execute function and save maxima parameters
 maxima0 = spot_detection(image0)
-maxima01 = spot_detection(image01)
-maxima025 = spot_detection(image025)
+#maxima01 = spot_detection(image01)
+#maxima025 = spot_detection(image025)
 
 """"radial profile
 We want to compute the azimuthal average"""
@@ -142,13 +138,13 @@ def azimuthal_average(image, maxima):
     return intensity_normalized
 
 measurement0 = azimuthal_average(image0, maxima0)
-measurement01 = azimuthal_average(image01, maxima01)
-measurement025 = azimuthal_average(image025, maxima025)
+#measurement01 = azimuthal_average(image01, maxima01)
+#measurement025 = azimuthal_average(image025, maxima025)
 
 """from tweezer vs airy script"""
 w_i = 0.002
 R = 0.002
-lam = 780* 10**(-9)
+lam = 820* 10**(-9)
 k = 2*np.pi / lam
 f = 0.004
 
@@ -202,4 +198,3 @@ ax.set_xlim(0,2)
 plt.savefig('theory_vs_measurement.pdf',
             dpi = 200,
             tight_layout = True)
-
