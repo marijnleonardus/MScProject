@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Jul 26 15:19:30 2021
-
 @author: Marijn Venderbosch
-
 This script
     - Takes raw camera data and saves region of interest
     - Detects spot using the laplacian of Gaussian algorithm
@@ -12,7 +10,7 @@ This script
     - Spots histograms of beam widths and trap depths 
 """
 
-# Libraries used
+#%% Libraries used
 import numpy as np
 import scipy.io
 from skimage.feature import blob_log
@@ -22,19 +20,21 @@ from scipy.stats import norm
 from mpl_toolkits import mplot3d
 from matplotlib import cm
 
+#%% Variables
 """"This windows contains the variables that need to be edited, rest of script
 does not have to be edited"""
 # Number of spots that we make, to check if spot detection worked
-number_spots_expected = 49
+number_spots_expected = 25
 # Location of .mat data file
-mat_file_location = 'files/7x7.mat'
+mat_file_location = 'files/5x5.mat'
 # Threshold on how sensitive spot detection is
 threshold = 0.2
 # How many pixels do we crop around the spot maxima locations
-cropping_range = 12
+cropping_range = 14
 # magnification from newport objective. This is uncalibrated. 
 magnification = 71.14
 
+#%% Load .mat 
 """" The following function will take the .mat file and export a grayscale numpy array
 with similar dimensions as the accompanying screenshot"""
 def load_and_save(mat_file):
@@ -62,6 +62,9 @@ def load_and_save(mat_file):
 # execute function. Insert in brackets the .mat filename
 load_and_save(mat_file_location)
 
+
+
+#%% Spot detection
 """The following part will detect maxima using the Laplacian of Gaussian algorithm"""
 
 # Load image from script 'loadmatSaveCamFrame.py'. 
@@ -69,6 +72,22 @@ load_and_save(mat_file_location)
 # Transpose because camera is rotated
 image_transposed = np.load('files/cam_frame_array_cropped.npy')
 image = np.transpose(image_transposed)
+
+# Show camera image
+def plot_camera(img):
+    # plots grayscale iamge of actual camera
+    fig, ax = plt.subplots()
+    
+    # normalize
+    img_normalized = img / np.max(img)
+    
+    ax.imshow(img_normalized, cmap = 'gray')
+    ax.set_xlabel('x [pixels]')
+    ax.set_ylabel('y [pixels]')
+    
+    plt.savefig('exports/camera_image.png', dpi = 300)
+    
+plot_camera(image)
 
 # Use LoG blog detection. 
 # Max_sigma is the max. standard deviation of the Gaussian kernel used. 
@@ -109,6 +128,7 @@ axes.scatter(maxima_x_coordinates , maxima_y_coordinates, marker = 'x', s = size
 # Saving and showing
 plt.savefig('exports/SpotsFoundUsingLoG.png', dpi = 500, tight_layout = True)
 
+#%% Crop spots and fit gaussians
 """This script crops the spots around the locatins found by the LoG algorithm. 
 Subsequently it fits 2D gaussians around the spot locations and plots them
 """
@@ -228,6 +248,7 @@ for j in range(amount_spots):
     ax[j].imshow(spots_cropped[j], extent = extent)
     # Title: index but starting from 1 instead of 0 so add 1
     ax[j].set_title(j + 1)
+    ax[j].set_axis_off()
     
     # Plot circles with correct center and sigma. 
     # Sigma is average of x and y, but also multiplied with 2 becaues its 1/e^2
@@ -268,6 +289,7 @@ print("Average r^2 is: " + str(mu_r_squared))
 # Saving and showing    
 plt.savefig('exports/SpotsCropped_range10.png', dpi = 500)
 
+#%% 3d plot to see how it went
 """We want to export one 3d image of the fit of G(x,y) to see how it went"""
 # Initialize figure
 fig =plt.figure(figsize = (8, 6))
@@ -314,6 +336,7 @@ def store_max_peaks_subpixel(list_input):
 # Call function and store result in variable
 max_Gauss_locations_subpixels = store_max_peaks_subpixel(max_Gauss_locations_list)
 
+#%% Spacing calculation
 """The following part computes the spacing of the spots in x and y"""
 # Dimension: array is d x d where d is dimension
 dimension = int(np.sqrt(amount_spots))
@@ -353,6 +376,7 @@ mu_y_spacing_microns, stddev_y_spacing_microns = norm.fit(y_spacing_microns)
 # Calculate ratio between x and y spacing 
 ratio_x_y_spacing = mu_y_spacing_microns / mu_x_spacing_microns   
 
+#%% Histograms of distributions
 """The following script will plot histograms of the obtained beamwidths and 
 trap depths, as well as finding the averages and spreads in them."""
 
@@ -428,4 +452,3 @@ plt.savefig('exports/FittedHistograms.png', dpi = 500, tight_layout = True)
 
 # Show all plots
 plt.show()
-
