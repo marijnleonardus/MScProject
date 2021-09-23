@@ -1,17 +1,17 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 """
 Created on Wed Sep  1 12:21:11 2021
-
 @author: Marijn Venderbosch
 
 This script plots a 3d scan of the tweezer. 
 Dimensions are set using the scanning step size in z-direction
 and pixel size in the r direction
-
 Compare to theory result from 'defocus longitudinal' script
 """
 
-#%% Imports, variables
+#%% imports
 import numpy as np
 import scipy.io
 from skimage.feature import blob_log
@@ -19,11 +19,12 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 import scipy.optimize
 
+#%% variables
 # mat file location
-mat_files_location = "./files/01/"
+mat_files_location = "./scan 4 0_25 Z04 correction/"
 
 # variables
-lam = 780e-9
+lam = 820e-9
 k = 2 * np.pi / lam
 f = 4e-3
 R = 2e-3
@@ -33,22 +34,22 @@ pixel_size = 4.65
 threshold = 0.05
 # amount of space to see around the maximum location
 number_spots_expected = 1
-row_cropping_range = 35
+row_cropping_range = 45
 
 # z scan names of .mat files to import
 z_steps_per_image = 50
-z_start = -850
+z_start = -1000
 z_stop = 0
 step = 0.010585
 
 # plot range theory result
-plot_range = 15e-6
+plot_range = 6e-6
 dz = np.linspace(-plot_range, plot_range, 1000)
 
 # Only fit around waist, in microns
-fitting_range = 2.5
+fitting_range = 3
 
-#%% Mathemetica result and PSF, theory results
+#%% mathemetica result and PSF, theory results
 def intensity_defocus(u):
     # in terms of dimenionless defocus paramter u = k dz R**2/f**2
     u = k * dz * R**2 / f**2
@@ -58,7 +59,7 @@ def intensity_defocus(u):
     
     return intensity__defocus_normalized
 # Rescale x axis
-dz_microns = dz * 10e5
+dz_microns = dz *1e6
 
 intensity__defocus_normalized = intensity_defocus(dz_microns)
 
@@ -185,14 +186,14 @@ center_x_fit = popt[1]
 gaussian_fitted = gaussian(fit_x, *popt)
 
 #%% plotting
-# Initialize plot
 fig, (ax1 ,ax2) = plt.subplots(nrows = 2, 
                               ncols = 1, 
-                              figsize = (4, 4.5),
+                              figsize = (5,5),
                               sharex = True)
+fig.subplots_adjust(hspace = 0, wspace = 0)
 
 # Vertical distance between plots
-plt.subplots_adjust(hspace = 0.5)
+plt.subplots_adjust(hspace = 0)
 
 """first plot: the tweezer scan"""
 # The aspect ratio of the plot is fixed to calculated value to ensure spacing in r,z is the same
@@ -210,55 +211,59 @@ ax1.yaxis.set_minor_locator(AutoMinorLocator(2))
 ax1.set_ylabel(r'Radial direction [$\mu$m]')
 
 # Setting horizontal plot range
-ax1.set_xlim(-4, 4)
+#ax1.set_xlim(-4, 4)
 
 """second plot: the data for the tweezer scan"""
 # Longitudinal plot, second plot
 # Plot against same horizontal coordinate
 ax2.grid()
-ax2.scatter(x_longitudinal - center_x_fit, longitudinal_normalized, 
+ax2.errorbar(x_longitudinal - center_x_fit, longitudinal_normalized, 
             color = 'blue',
-            s = 6, 
-            marker = 'X'
+            fmt = 'o',
+            ms = 5,
+            yerr = 0.05 * longitudinal_normalized
             )
 
 # Plots, ticks for second plot
 ax2.xaxis.set_major_locator(plt.MultipleLocator(1))
 ax2.xaxis.set_minor_locator(AutoMinorLocator(2))
 ax2.set_xlabel(r'z-direction [$\mu$m]')
-ax2.set_ylabel('Irradiance [a.u.]')
+ax2.set_ylabel(r'$I/I_0$ [a.u.]')
 
 # only labels on bottom plot
 for ax in fig.get_axes():
     ax.label_outer()
     
 ax2.plot(dz_microns, intensity__defocus_normalized)
-ax2.set_xlim(-4, 4)
-ax2.set_ylim(0.2, 1.05)
-ax2.set_aspect(2.3)
+#ax2.set_xlim(-4, 4)
+#ax2.set_ylim(0.2, 1.05)
+#ax2.set_aspect(1.8)
 
 # Saving
-plt.savefig('exports/4mmFScorrection01.pdf',
+plt.savefig('exports/correction0_23.pdf',
             dpi = 300)
 
 """third plot. We plot separately because x range is different"""
-fig, ax = plt.subplots()
-ax.scatter(x_longitudinal_cropped, longitudinal_normalized_cropped, 
+fig, ax = plt.subplots(figsize = (4,3))
+ax.errorbar(x_longitudinal_cropped, longitudinal_normalized_cropped, 
             color = 'blue',
-            s = 6, 
-            marker = 'X'
+            fmt = 'o',
+            ms = 5, 
+            yerr = 0.05 * longitudinal_normalized_cropped
             )
 
-ax.plot(fit_x, gaussian_fitted)
+ax.plot(fit_x, gaussian_fitted, color = 'red')
 ax.set_xlim(-fitting_range, +fitting_range)
+ax.set_ylim(0.6, 1.1)
 
 ax.set_xlabel(r'Defocus [$\mu$m]')
 ax.set_ylabel(r'Intensity [a.u.]')
 ax.grid()
 
 #%% Saving
-plt.savefig('exports/4mmFScorrection01_lim_fitrange.pdf',
-            dpi = 300)
+plt.savefig('exports/correction0_23.png',
+            dpi = 300,
+            bbox_inches = 'tight')
 
 waist = 2* popt[2]
 rayleigh = np.sqrt(2 * np.log(2)) * popt[2]
