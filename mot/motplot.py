@@ -32,15 +32,18 @@ fix, ax = plt.subplots(figsize = (4, 3))
 ax.plot(omega_d, force_plus, 
         label = r'$\sigma_{+}$',
         linewidth = 2,
-        linestyle = '--')
+        linestyle = '--',
+        color = 'blue')
 ax.plot(omega_d, force_minus,
         label = r'$\sigma_{-}$',
         linewidth = 2,
-        linestyle = '--')
+        linestyle = '--',
+        color = 'red')
 ax.plot(omega_d, force_total,
         label = r'$\sigma_{+}+\sigma_{-}$',
         linewidth = 3,
-        linestyle = '-')
+        linestyle = '-',
+        color = 'purple')
 
 ax.set_xlabel(r'velocity [$\gamma/k$]')
 ax.xaxis.set_minor_locator(MultipleLocator(1))
