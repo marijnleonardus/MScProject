@@ -8,13 +8,14 @@ This script will compute the azimuthal average around a spot.
 Preferably a single spot so the rings are clearly visible. 
 """
 
-# Libraries used
+#%% imports
 import numpy as np
 import scipy.io
 from skimage.feature import blob_log
 import matplotlib.pyplot as plt
 from scipy.special import jv
 
+#%%variables
 """"This windows contains the variables that need to be edited, rest of script
 does not have to be edited"""
 
@@ -25,6 +26,13 @@ threshold = 0.2
 # Number of spots expected for LoG. Since we don't use a pattern of spots set to 1
 number_spots_expected = 1
 # mat file
+
+# theory plot parameters
+w_i = 2e-3
+R = 2e-3
+lam = 820e-9
+k = 2*np.pi / lam
+f = 4e-3
 
 """" The following function will take the .mat file and export a grayscale numpy array
 with similar dimensions as the accompanying screenshot"""
@@ -50,9 +58,9 @@ def load_and_save(mat_file):
  
 # execute function. Insert in brackets the .mat filename
 image0 = load_and_save('files/goodone.mat')
-#image01 = load_and_save('files/minus01.mat')
-#image025 = load_and_save('files/minus025.mat')
  
+
+#%% spot detection
 """The following part will detect maxima using the Laplacian of Gaussian algorithm"""
 # Load image from script 'loadmatSaveCamFrame.py'. 
 # Image is cropped to region of interest
@@ -98,9 +106,9 @@ def spot_detection(image):
 
 # Execute function and save maxima parameters
 maxima0 = spot_detection(image0)
-#maxima01 = spot_detection(image01)
-#maxima025 = spot_detection(image025)
 
+
+#%% azimuthal average
 """"radial profile
 We want to compute the azimuthal average"""
 
@@ -138,16 +146,11 @@ def azimuthal_average(image, maxima):
     return intensity_normalized
 
 measurement0 = azimuthal_average(image0, maxima0)
-#measurement01 = azimuthal_average(image01, maxima01)
-#measurement025 = azimuthal_average(image025, maxima025)
 
+
+#%% numerical integration, theory calculation
 """from tweezer vs airy script"""
-w_i = 0.002
-R = 0.002
-lam = 820* 10**(-9)
-k = 2*np.pi / lam
-f = 0.004
-
+# Computes theory result
 # Radius in focal plane, as well as initializing empty tweezer matrix
 tweezer_matrix = []
 
@@ -172,19 +175,19 @@ airy = f / k / rad_m * jv(1, k * rad_m * R / f)
 airy_intensity = abs(airy)**2
 airy_intensity_normalized = airy_intensity / np.max(airy_intensity)
     
-
+#%% plotting, saving
 # Plot tweezer
 fig, ax = plt.subplots(1,1, figsize = (4, 3))
 ax.grid()
 
 # rescale x axis to show um instead of m
-rad_microns = rad_m * 10**6
+rad_microns = rad_m * 1e6
 
-ax.plot(rad_microns, tweezer_intensity_normalized, label = 'tweezer theory')
+ax.plot(rad_microns, tweezer_intensity_normalized, label = r'$w_i \approx R$')
 ax.scatter(rad_microns, measurement0,
            label = 'measurement', 
            color = 'red', 
-           s = 5,
+           s = 7,
            marker ='X'
            )
 ax.plot(rad_microns, airy_intensity_normalized, label = 'point spread function')
@@ -192,9 +195,9 @@ ax.plot(rad_microns, airy_intensity_normalized, label = 'point spread function')
 ax.set_xlabel(r'radial coordinate in focal plane $r$ [$\mu$m]')
 ax.set_ylabel('normalized intensity [a.u.]')
 ax.legend()
-ax.set_xlim(0,2)
+ax.set_xlim(0, 2)
 
 # Saving
 plt.savefig('theory_vs_measurement.pdf',
             dpi = 200,
-            tight_layout = True)
+            bbox_inches = 'tight')
