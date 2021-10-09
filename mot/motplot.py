@@ -30,25 +30,25 @@ fix, ax = plt.subplots(figsize = (4, 3))
 
 
 ax.plot(omega_d, force_plus, 
-        label = r'$\sigma_{+}$',
+        label = r'$F^+$',
         linewidth = 2,
         linestyle = '--',
         color = 'blue')
 ax.plot(omega_d, force_minus,
-        label = r'$\sigma_{-}$',
+        label = r'$F^-$',
         linewidth = 2,
         linestyle = '--',
         color = 'red')
 ax.plot(omega_d, force_total,
-        label = r'$\sigma_{+}+\sigma_{-}$',
+        label = r'$F^++F^-$',
         linewidth = 3,
         linestyle = '-',
         color = 'purple')
 
-ax.set_xlabel(r'velocity [$\gamma/k$]')
+ax.set_xlabel(r'$vk/ \gamma$')
 ax.xaxis.set_minor_locator(MultipleLocator(1))
 
-ax.set_ylabel(r'force [$\hbar k \gamma$]')
+ax.set_ylabel(r'$F / \hbar k \gamma$')
 
 ax.legend()
 ax.grid(which='both')
