@@ -1,65 +1,63 @@
-## -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
-Created on Fri Mar 19 14:55:26 2021
+Created on Wed Aug 25 13:08:08 2021
+
 @author: Marijn Venderbosch
+
+This script plots the calibrated .lut values. 
+Optionally, can also plot factory provided .lut slm5952......
+
+Also, plots the raw data the lut is based on 
 """
 
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
+#%% imports
+import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
-# Initialize r and z coordinates, radial and longitudal direction respectively
-nz, nr = (100, 100)
+#%% read data
 
-# Amount of waists/rayleigh Ranges to include
-plotrange_r = 3
-plotrange_z = 3
+# Factory supplied .lut, commented for now
+# df_813 = pd.read_csv('lut files/slm5953_at785_HDMI.lut', delimiter = ' ', header = None)
+# lut_813_mV = np.array(df_813)
+# lut_820 = lut_813_mV * 5 / 2**(12)
 
-# Amount of points for 2D grid
-spacing_r = 100
-spacing_z = 100
+# Own diffractive lut calibration file
+df_820 = pd.read_csv('lut files/lut820_diffractivecalibration.lut',
+                     delimiter = ' ',
+                     header = None)
+lut_820_mV = np.array(df_820)
+# Convert bit values to V values. 0-5V in 4096 (2^12) steps
+lut_820 = lut_820_mV[:,1] * 5 / 2**(12)
 
-# Create 2D grid
-rv = np.linspace(-plotrange_r, plotrange_r, spacing_r)
-zv = np.linspace(-plotrange_z, plotrange_z, spacing_z)
-r, z = np.meshgrid(rv,zv)
+# Raw data of calibration, power in first order measurement
+df_raw_data = pd.read_csv('raw calibration data/Raw0.csv',
+                          delimiter = ',',
+                          header = None)
+raw_array = np.array(df_raw_data)
+raw_normalized = np.array(raw_array[:, 1]) / np.max(raw_array[:, 1])
 
-# Define optical potential function. Modeled as gaussian with rayleight range z_R
-# and waist w_0. 
-def optical_potential(U0, w0, zR, z, r):
-    prefactor = -U0 / (1 + z**2/zR**2)
-    exponent = -2*r**2 / (w0**2*(1 + z**2 / zR**2))
-    return prefactor * np.exp(exponent)
+#%%plotting
+#ax.plot(lut_813[:, 1], label = '813.lut')
+fig, ax = plt.subplots(figsize = (4,3))
+ax.plot(lut_820,
+        label = '820.lut',
+        color = 'blue')
 
-# Return dimensionless optical potential. Dimensionless because w_i = z_R = U_0 = 1
-potential = optical_potential(1, 1, 1, z, r)
-
-# Plotting
-fig = plt.figure(figsize = (5,4))
-ax = fig.gca(projection = '3d')
-surf = ax.plot_surface(r ,z, potential,
-                       cmap = cm.viridis, 
-                       linewidth = 0, 
-                       antialiased = False)
-ax.set_zlim(-1.1,0)
-cb = plt.colorbar(surf, 
-                  ax = [ax], 
-                  shrink = 0.45, 
-                  aspect = 6, 
-                  location ='left',
-                  ticks=[-1,-0.8,-0.6,-0.4,-0.2,0],
-                  pad = 0)
-
-ax.set_xlabel(r'$r/w_0$')
-ax.set_ylabel(r'$z/z_R$')
-ax.set_zlabel(r'$U(r,z)/U_0$')
 ax.grid()
+ax.set_xlabel('grey level 0-255')
+ax.set_ylabel('voltage response [V]',
+              color = 'blue')
 
-# Saving
-plt.savefig('ODTdepth.png', 
-            bbox_inches='tight',
-            pad_inches = 0,
-            dpi = 500)
-plt.show()
+# raw data. Use same x axis, other y
+ax2 = ax.twinx()
+ax2.plot(raw_normalized, 
+         color = 'red')
+ax2.set_ylabel(r'$P/P_0$', 
+               color = 'red')
+
+#plt.legend()
+
+#%% saving
+plt.savefig('lut_plot.pdf', dpi = 300, bbox_inches = 'tight')
+
