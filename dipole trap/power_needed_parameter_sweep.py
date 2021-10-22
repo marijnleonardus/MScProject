@@ -49,12 +49,14 @@ def power_needed(trap_depth, waist, detuning):
     power = trap_depth * waist**2 * detuning * transition_angular / (3 * c * matrix_element)
     return power
 
+power_standard_parameters = power_needed(standard_trapdepth, waist0_7, detuning820)
+
 #%% plot power vs trap depth
 
 # parameter sweeps
 trap_depth_range_mK = np.linspace(0, 3, 101)
-waist_range = np.linspace(0.5e-6, 1e-6, 101)
-trapping_frequency_range = np.linspace(780e-9, 850e-9, 101)
+waist_range = np.linspace(0.6e-6, 1e-6, 101)
+trapping_frequency_range = np.linspace(790e-9, 850e-9, 101)
 detuning_range =- 2 * np.pi * c / trapping_frequency_range + transition_angular
 
 # Initialize plot
@@ -69,6 +71,10 @@ ax1.plot(trap_depth_range_mK, power_needed(trap_depth_range_mK,
 ax1.grid()
 ax1.set_xlabel(r'Trap depth $U_0/k_b$ [mK]')
 ax1.set_ylabel(r'P [mW]')
+ax1.scatter(standard_trapdepth, 
+            power_standard_parameters,
+            s = 30,
+            color = 'red')
 
 # Plot power as a function of waist, using standard trap depth and detuning
 ax2.plot(waist_range, power_needed(standard_trapdepth,
@@ -76,6 +82,10 @@ ax2.plot(waist_range, power_needed(standard_trapdepth,
                                    detuning820))
 ax2.grid()
 ax2.set_xlabel(r'Waist $w$ [$\mu$m]')
+ax2.scatter(waist0_7,
+            power_standard_parameters,
+            s = 30,
+            color = 'red')
 
 # Plot power as function of laser frequency (detuning) using standard trap depth, waist. 
 # Scale x axis by 10^-9 to get in nm
@@ -84,6 +94,10 @@ ax3.plot(trapping_frequency_range / 1e-9, power_needed(standard_trapdepth,
                                                        detuning_range))
 ax3.grid()
 ax3.set_xlabel(r'Wavelength $\lambda$ [nm]')
+ax3.scatter(laser_wl/1e-9,
+            power_standard_parameters,
+            s = 30,
+            color = 'red')
 
 plt.savefig('Trapdepth_vs_power_tweezer.pdf',
             dpi = 300,
