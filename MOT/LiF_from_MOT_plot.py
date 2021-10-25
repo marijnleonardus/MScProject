@@ -21,6 +21,7 @@ from matplotlib import cm
 cropping_range = 80
 pixel_size = 4.65e-6
 magnification = 0.5      
+scalebar_object_size = 250 #micron
 
 #%%importing data
 # bmp file
@@ -45,12 +46,12 @@ img.set_cmap('magma')
 ax.axis('off')
 
 # Scale
-scalebar_object_size = 250e-6 #micron
-scalebar_pixels = int(scalebar_object_size / (pixel_size / magnification)) # integer number pixels
+scalebar_object_size_microns = scalebar_object_size * 1e-6 #micron
+scalebar_pixels = int(scalebar_object_size_microns / (pixel_size / magnification)) # integer number pixels
 
 scale_bar = AnchoredSizeBar(ax.transData,
                            scalebar_pixels, # pixels
-                           r'250 $\mu$m', # real life distance of scale bar
+                           str(scalebar_object_size) + r' $\mu$m', # real life distance of scale bar
                            'lower left', 
                            pad = 0,
                            color = 'white',
