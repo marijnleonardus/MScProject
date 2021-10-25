@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Oct 21 20:41:31 2021
-
 @author: marijn
-
 Script makes a plot of the laser induced fluorescence from the MOT with
 a color overlay and a scalebar
 """
@@ -25,7 +23,7 @@ magnification = 0.5
 
 #%%importing data
 # bmp file
-image = Image.open('mot.bmp')
+image = Image.open('images/mot2.bmp')
 array = np.array(image) 
 
 # Finding center MOT
@@ -58,6 +56,26 @@ scale_bar = AnchoredSizeBar(ax.transData,
                            frameon = False,
                            size_vertical = 2.5)
 ax.add_artist(scale_bar)
+
+# Colorbar
+# create an axes on the right side of ax. The width of cax will be 5%
+# of ax and the padding between cax and ax will be fixed at 0.05 inch.
+divider = make_axes_locatable(ax)
+cax = divider.append_axes("right",
+                          size= " 5%",
+                          pad = 0.05)
+
+cbar = plt.colorbar(img,
+                    ticks = np.linspace(0, 1, 3),
+                    extendrect='true',
+                    cax=cax,
+                    )
+
+
+#%%saving
+plt.savefig('exports/LiF_MOT.pdf',
+            dpi = 300,
+            bbox_inches= 'tight')
 
 # Colorbar
 # create an axes on the right side of ax. The width of cax will be 5%
