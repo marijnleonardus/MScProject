@@ -14,16 +14,17 @@ import numpy as np
 from numpy import unravel_index
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib import cm
 
 
 #%% Variables
-cropping_range = 100
+cropping_range = 80
 pixel_size = 4.65e-6
 magnification = 0.5      
 
 #%%importing data
 # bmp file
-image = Image.open('images/mot2.bmp')
+image = Image.open('images/mot.bmp')
 array = np.array(image) 
 
 # Finding center MOT
@@ -44,12 +45,12 @@ img.set_cmap('magma')
 ax.axis('off')
 
 # Scale
-scalebar_object_size = 200e-6 #micron
+scalebar_object_size = 250e-6 #micron
 scalebar_pixels = int(scalebar_object_size / (pixel_size / magnification)) # integer number pixels
 
 scale_bar = AnchoredSizeBar(ax.transData,
                            scalebar_pixels, # pixels
-                           r'200 $\mu$m', # real life distance of scale bar
+                           r'250 $\mu$m', # real life distance of scale bar
                            'lower left', 
                            pad = 0,
                            color = 'white',
@@ -67,10 +68,9 @@ cax = divider.append_axes("right",
 
 cbar = plt.colorbar(img,
                     ticks = np.linspace(0, 1, 3),
-                    extendrect='true',
-                    cax=cax,
+                    extendrect = 'true',
+                    cax = cax
                     )
-
 
 #%%saving
 plt.savefig('exports/LiF_MOT.pdf',
@@ -90,7 +90,6 @@ cbar = plt.colorbar(img,
                     extendrect='true',
                     cax=cax,
                     )
-
 
 #%%saving
 plt.savefig('LiF_MOT.pdf',
