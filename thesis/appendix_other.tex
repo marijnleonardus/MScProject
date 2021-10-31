@@ -1,0 +1,188 @@
+\chapter{Other appendices}
+
+%\chapter{ODT}
+
+
+Describing an ODT is non-trivial, but the semi-classical of a 2-level atom is instructive and explains the most important behavior. Semi-classical means we treat the atom as quantized energy levels why the light field is described classically. Assume we have a two-level atom. The ground $\ket{g}$ and excited $\ket{e}$ satisfy the time-independent Schrödinger equation. We follow \cite{Leeuwen2017}
+
+\begin{equation}\label{eq:EigenEnergies}
+	\mathcal{H} \ket{g} = \hbar \omega_g \ket{g}, \quad \mathcal{H} \ket{e} = \hbar \omega_e \ket{e}
+\end{equation}
+
+We will now split the Hamiltonian $\mathcal{H}$ in two parts:
+
+\begin{equation}\label{eq:Perturbation}
+	\mathcal{H} = \mathcal{H}_A + \mathcal{H}'(t),
+\end{equation}
+
+where $\mathcal{H}_A$ denotes the Hamiltonian of the atom and $\mathcal{H}'(t)$ is a perturbation introduced by an external field, e.g. a beam of light. According to quantum mechanics, the time-dependent solutions for a two-level system are 
+
+\begin{equation}\label{eq:TwoLevel}
+	\ket{\psi} = c_g(t) e^{-i \omega_g t} \ket{g} + c_e(t) e^{-i \omega_e t} \ket{e}.
+\end{equation}
+
+Substituting \cref{eq:Perturbation,eq:TwoLevel} in the Schrodinger equation yields, after cancelling the terms that involve \cref{eq:EigenEnergies} 
+
+\begin{equation}\label{eq:TwoLevelSchroedinger}
+	i \hbar \left(\dot{c}_g e^{-i \omega_e t}+\dot{c}_e e^{-i \omega_e t} \right) = c_g \mathcal{H}'(t)\ket{g} e^{-i \omega_g t} + c_e \mathcal{H}'(t) \ket{e} e^{-i \omega_e t},
+\end{equation}
+
+where the explicit time dependence of $c_g$ and $c_e$ have been omitted for ease for reading. Because $\{\ket{g},\ket{e}\}$ constitute an orthogonal set, we can exploit a trick where we multiply \cref{eq:TwoLevelSchroedinger} from the left by $\{\bra{g},\bra{e}\}$, yielding a set of two coupled equations:
+
+\begin{equation}\label{eq:CoupledEq}
+	i \hbar \dot{c}_g = c_e e^{-i \omega_0 t} \bra{g}\mathcal{H}'(t)\ket{e}, \quad i \hbar \dot{c}_e = c_g e^{i \omega_0 t} \bra{e} \mathcal{H}'(t) \ket{g},
+\end{equation}
+
+where the energy difference is absorbed in the term $\hbar \omega_0 = \hbar \omega_e - \hbar \omega_g$. Because the interaction Hamiltonian is Hermitian, the two matrix elements in \cref{eq:CoupledEq} are each others complex conjugate. If we substite for $\mathcal{H}$ the dipole interaction energy we get $\mathcal{H}'(t) = - e \mathbf{E} \cdot \mathbf{r}$, where $e$ is the electron charge, $\mathbf{E}$ the electric field vector and $r$ the position vector of the electron with respect to the atom core. We can for example chose for $\mathbf{E}$ a plane wave travelling in the z-direction polarized in the x-direction: $\mathbf{E}(z,t) = E_0 \exp{(ikz - i\omega t} \mathbf{e}_x$. Substituting the resulting definition for $\mathcal{H}'(t)$ in \cref{eq:CoupledEq} yields
+
+\begin{equation}\label{eq:Rabi}
+	i \hbar \dot{c}_g = c_e \frac{\hbar \Omega}{e} e^{i \delta t}, \quad i \hbar \dot{c}_e = c_g \frac{\hbar \Omega^*}{e} e^{-i \delta t}.
+\end{equation}
+
+Where the so-called Rabi frequency $\Omega \equiv e |\mathbf{E}| \bra{g}z\ket{e}/\hbar$ is introduced. Also, in \cref{eq:Rabi} the rotating wave approximation was used. This effectively means that driving terms oscillating with $\omega + \omega_0$ oscillate much faster than terms with $\omega - \omega_0$, meaning that over many integration cycles they effectively cancel out. In order to simplify \cref{eq:Rabi}, we can turn 'look' at them from a 'rotating frame', which is equivalent to the transformation \cite{Muldoon2012}
+
+\begin{equation}\label{eq:rotatingFrame}
+	\tilde{c}_g = c_g e^{-i \delta t}, \quad \tilde{c}_e = c_e e^{i \delta t}.
+\end{equation}
+
+Substituting \cref{eq:rotatingFrame} in \cref{eq:Rabi} yields, after omitting the tiles, the matrix equation
+
+\begin{equation}
+	i \hbar \begin{bmatrix}
+		\dot{c}_g \\ 
+		\dot{c}e
+	\end{bmatrix}
+	= \frac{\hbar}{e} \begin{bmatrix}
+		\delta & \Omega \\ \Omega^* & -\delta 
+	\end{bmatrix} 
+	\begin{bmatrix}
+		c_g \\ c_e
+	\end{bmatrix}
+\end{equation}.
+
+The matrix has eigenvalues $U_{\pm} = \hbar/2 \cdot (\delta \pm \sqrt{\Omega^2+\delta^2})$. The difference as a result of turning on the field is for a far-detuned field $|\delta| \gg \Omega$ approximately 
+
+\begin{equation}\label{eq:Stark}
+	U_{e,g} = \pm \frac{\hbar \Omega^2}{4 \delta}.
+\end{equation}
+
+So for a red-detuned field ($\delta < 0$), the upper state $\ket{e}$ is shifted up and $\ket{g}$ is shifted to lower energy by an amount refered to as the AC Stark shift. The shift is proportional to the intensity of the light $I \propto |\Omega|^2$. The gradient of which is the dipole force $F_{\text{dip}}$, which brings us to the elegant result
+
+
+%\chapter{Fourier Optics}
+
+
+
+%\section{Fourier Optics}
+
+For describing the optics in this project, we need a description of diffraction. Ray optics will not suffice for this, wave optics is needed. One elegant description is Fourier optics. 
+
+We start with a result from Maxwell's equations in an electromagnetic medium in three dimensions, where $\mathbf{u(\mathbf{r},t)}$ can denote either the electric or magnetic field vector.
+
+\begin{equation}\label{WaveEquation}
+	\nabla^2 \mathbf{u}(\mathbf{r},t) = \frac{n^2}{c^2} \frac{\partial^2 \mathbf{u}(\mathbf{r},t)}{\partial t^2}
+\end{equation}
+
+For monochromatic light, which is true to good approximation for a laser, we can substitute the ansatz $\mathbf{u(\mathbf{r},t)} = Re\{ \mathbf{U}(\mathbf{r}) e^{i \omega t} \}$, yielding the time-independent so called Helmholtz equation:
+
+\begin{equation}\label{Helmholtz}
+	(\nabla^2 + k^2)  \mathbf{U}(\mathbf{r}) = 0
+\end{equation}
+
+\section{Huygens-Fresnel Principle}
+
+The Huygens-Fresnel principle can be expressed mathematically as \cite{Goodman2005}:
+
+\begin{equation}\label{eq:HuygensFresnel}
+	U(P_0) = \frac{1}{i \lambda} \iint U(P_1) \frac{e^{i k r}}{r} \cos{\theta} \text{d}x' \text{d}y'
+\end{equation}
+
+Because $\cos{\theta} = z/r$, we can write \ref{eq:HuygensFresnel} as:
+
+\begin{equation}\label{eq:HuygensFresnel2}
+	U(x,y) = \frac{z}{i \lambda} \iint U(x',y') \frac{e^{i k r}}{r^2} \text{d}x' \text{d}y',
+\end{equation}
+
+where $r$ is given by $\sqrt{(z^2 + (x-x')^2 +(y-y')^2)}$. Because the square root is dificult to work with, $r$ can be approximated by assuming $z^2 \gg (x-x')^2 + (y-y')^2$, which is really the same thing as assuming the angle $\theta$ is small (paraxial approximation). We can then expand the definition for $r$ to first order as
+
+\begin{equation}\label{eq:FirstOrderR}
+	r = z \sqrt{1+ \Big(\frac{x-x'}{z}\Big)^2 + \Big( \frac{y-y'}{z}\Big)} \approx z \left[ 1 + \frac{1}{2} \Big(\frac{x-x'}{z}\Big)^2 + \frac{1}{2} \Big( \frac{y-y'}{z} \Big)^2\right]
+\end{equation}
+
+When $r$ appears in the denominator, we can approximate the term in square brackets as unity. For terms appearing in the exponent however, we cannot do this. Substituting \cref{eq:FirstOrderR} in \cref{eq:HuygensFresnel2}:
+
+\begin{equation}\label{eq:HuygensFresnel3}
+	U(x,y) = \frac{e^{i k z}}{i \lambda z}\iint U(x',y') \exp{\frac{i k}{2 z} \left[(x-x')^2+(y-y')^2\right]} \text{d}x' \text{d}y'
+\end{equation}
+
+\subsection{Fraunhofer Approximation}
+
+the term in square brackets in \cref{eq:HuygensFresnel3}, when expanded yields:
+
+\begin{equation}
+	(x^2+y^2) + (x'x+y'y)+(x'^2+y'^2)
+\end{equation}
+
+As a final approximation, if the Fraunhofer approximation is met: $2z \gg k \max{(x'^2+y'^2)}$, $x'x+y'y \gg x'^2+y'^2$ and we can drop the latter two terms in the integration. If the constant phase term involving $x^2+y^2$ is brought in front of the integral we are left with the Fraunhofer diffraction integral:
+
+\begin{equation}\label{FraunhoferDiffractionIntegral}
+	U(x,y) = \frac{e^{i k z}}{i \lambda z} e^{i(x^2+y^2)/(2z)} \iint U(x',y') e^{\frac{-i 2 \pi}{\lambda z} (x'x+y'y)}\text{d}x' \text{d}y'
+\end{equation}
+
+In \cref{FraunhoferDiffractionIntegral}, the 2D Fourier transform property can be recognized, for frequencies $f_x=x/(\lambda z)$ and $f_y=y/(\lambda z)$:
+
+\begin{equation}
+	U(x,y)=\frac{e^{i k z}}{i \lambda z} e^{i(x^2+y^2)/(2z)} \mathscr{F}\{ U(x',y')\} 
+	\Bigr\rvert_{f_x=x'/\lambda z,f_y=y'/\lambda z}
+\end{equation}
+
+where $\mathscr{F}\{\}$ denotes the 2D Fourier transform, evaluated at frequencies $f_x=x'/\lambda z$ and $f_y=y'/\lambda z$, more conveniently written as $\mathscr{F}\{U\}(f_x,f_y$) from now \cite{Bijnen2015}.
+
+\subsection{Transfer Function Lens}
+
+The SLM produces an intensity pattern in the far field. To project this pattern a distance smaller than infinity away, a positive lens is used. To describe the optics of the SLM pattern, this lens should thus be taken into account. In Fourier optics, the effect of a thin lens can be described as
+
+\begin{equation}\label{lensTransfer}
+	U'_{lens}(x,y) = t(x,y) U_{lens}(x,y),
+\end{equation}
+
+where t(x,y) is the so-called transfer function of a lens. The derivation for paraxial approimation is done from p. 97 in \cite{Goodman2005} and \cite{Dijk2012} and will not be repeated here. The result for a thin lens is:
+
+\begin{equation}\label{transferFunction}
+	t(x,y)=\exp{\left[\frac{-i k}{2 f}(x^2 + y^2)\right]}
+\end{equation}
+
+**insert some more stuff** In the end, one finds the following relation between the SLM plane and the focal plane of the Fourier lens:
+
+\begin{equation}\label{relationSLMlens}
+	U(x, y)=\frac{e^{i \frac{k}{2 f}\left(1-\frac{d}{f}\right)\left(x^{2}+y^{2}\right)}}{i \lambda f} \iint U_{\text{SLM}}(x', y') e^{-i \frac{2 \pi}{\lambda f}(x'x+y'y)} \mathrm{d}x'\mathrm{d}y'
+\end{equation}
+
+However, the quantity typically measured is power or intensity, which is the absolute value squared of the complex amplitude \cite{Dijk2012,Bijnen2015}
+
+\begin{equation}\label{FourierFinal}
+	I(x,y) = |U(x,y)|^2 \propto \left| \mathscr{F} \{ PU_0 e^{i \Phi(x',y')} \} (\frac{x'}{\lambda f},\frac{y'}{\lambda f})\right|^2
+\end{equation}
+
+Where $U_0$ notes the input intensity complex amplitude, $P$ the aperture function of the SLM and the phase factor $e^{i \Phi(x,y)}$ the phase modulation of the SLM. In practice, we have a finite amount of pixels available on the SLM and $\Phi(x',y')$ is not continuous, therefore we use the discrete Fourier transform (DFT) which uses a more efficient algorithm also known as the fast Fourier transform (FFT). 
+
+
+
+
+%\chapter{Light matter interaction}
+
+
+Because light is the main tool used in the field of ultracold atoms to manipulate atoms, here a brief description of light-matter interaction will be discussed. The matter has been discussed more thoroughly in several sources \cite{Metcalf1999,Vredenbregt2020,Leeuwen2017}.
+\section{Light Matter Interaction}
+
+
+
+%\chapter{Strehl Ratio}
+
+In practice, there will always be some wavefront-distortion present as a result of aberrations. This distortion can be measured using a Shack-Hartmann wavefront sensor. A quicker method is using the definition of the Strehl ratio, a measure of the intensity contained in the central lobe of the Airy disk compared to the theoretical diffraction-limited maximum \cite{Sortais2007}. The definition of the Strehl $S$ ratio in terms of the RMS wavefront error $\Delta$ is 
+
+\begin{equation}\label{Strehl}
+	S = 1- 4\pi^2\frac{\Delta^2}{\lambdaup^2}
+\end{equation}
+
+A commonly used criterion is $S>0.8$ for the system to be diffraction-limited. This sets a limit on the RMS wavefront error of $\Delta < 0.071 \lambdaup$.

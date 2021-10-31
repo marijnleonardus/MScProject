@@ -1,0 +1,26 @@
+In this chapter, we will familiarize the reader with the relevant part of the level structure of Rb for optical cooling and trapping, as well as how we intent to load single atoms. 
+
+\section{Level Structure Rb}
+
+
+\section{Loading Single Atoms}
+
+For the quantum register, an array of single atoms is needed. In order to do this, individual atoms from the cold atom cloud are loaded in optical tweezers, or tightly focused laser beams. We can write the dynamics of the number of atoms $N$ in the tweezer as \cite{Schlosser2002}
+
+\begin{equation}\label{LoadingTweezer}
+	\frac{\text{d}N}{\text{d}t} = \alpha - \gamma N - \beta N(N-1)
+\end{equation}
+
+where the first term $\alpha$ is the loading rate or the amount of Rb atoms entering the tweezer per second. Next, $\gamma$ is the atom loss as a result of collisions with the background gas. Lastly, $\gamma$ is a measure for the mainly 2 body loss as a result of light-assisted collisions. No additional laser is required for this, the MOT beams can be used for this purpose.  
+
+We are interested in the case $\beta \gg \gamma$: the two-body collisions are dominant. We can now look at two distinct scenarios:
+
+\begin{itemize}
+	\item Starting from 0 atoms in the tweezer: an additional atom entering will now load the tweezer to $N=1$. 
+	
+	\item Starting from $N=1$: when an additional atom is loaded, the atoms will immediately kick out each other because of the tiny tweezer volume and strong light intensity from the MOT beams. 
+\end{itemize}
+
+Apparently, a loading event can lead to either 0 or 1 atom in the tweezer, both with $50\%$ probability. This is known as the collisional blockade effect. Experimentally demonstrated by \cite{Schlosser2001} and \cite{Schlosser2002} showed this effect to exits for 3 orders of magnitude in the loading rate $\alpha$.
+
+Experimentally, $\beta \gg \gamma$ can be keeping $\gamma$ to a minimum by going to the ultra high vacuum regime. We intent to go to a pressure of the order of $10^{-10}$ mbar. In addition $\beta$ is maximized by going to high light-intensities and small trapping volumes. 

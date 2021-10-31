@@ -1,0 +1,73 @@
+\chapter{Pauli Strings}\label{ch:PauliExpectation}
+
+In VQE, the Hamiltonian is decomposed in Pauli strings $P_{\alpha}$.
+
+\begin{equation}
+	\mathcal{H} = \sum_{\alpha} h_{\alpha} P_{\alpha}
+\end{equation}
+
+
+A Pauli string is a tensor product of Pauli matrices $\sigma_j^{\alpha} \in \{\mathcal{I}, \sigma_j^x, \sigma_j^y, \sigma_j^z\}$ where $\mathcal{I}$ is the identity matrix and $\sigma_j^{\alpha}$ are the standard Pauli spin matrices \cite{Griffiths2004}
+
+\begin{equation}
+	\mathcal{I} =
+	 \begin{pmatrix}
+		1 & 0\\
+		0 & 1
+	\end{pmatrix},
+	 \quad \sigma_j^x=
+	\begin{pmatrix}
+		0 & 1\\
+		1 & 0
+	\end{pmatrix},
+	\quad \sigma_j^y=
+	\begin{pmatrix}
+		0 & -i\\
+		i & 0
+	\end{pmatrix} 
+	\quad \text{and}
+	\quad \sigma_j^z = 
+	\begin{pmatrix}
+		1 & 0\\
+		0 & -1
+	\end{pmatrix}
+\end{equation}
+
+Such that the Pauli string is \cite{Moll2018}:
+
+\begin{equation}\label{eq:PauliString}
+	P_{\alpha} = 
+	\sigma_1^{\alpha_1} \otimes \sigma_2^{\alpha_2} \otimes \ldots \otimes \sigma_N^{\alpha_N} = 
+	\bigotimes_{j=1}^N \sigma_j^{\alpha_j}
+\end{equation}
+
+This has the nice property that estimating the Hamiltonian is equivalent to measuring populations of individual qubits. This has to be done repeatedly, in order to get an estimate. Using the definition for the expectation value for $\sigma_j^z$ for example yields
+
+\begin{equation}\label{eq:ExpectationValue}
+	\bra{\psi}  \sigma_j^z  \ket{\psi} = 
+	\begin{pmatrix}
+		a & b
+	\end{pmatrix}^{\dag}
+	\begin{pmatrix}
+		1 & 0\\
+		0 & -1
+	\end{pmatrix}
+	\begin{pmatrix}
+		a \\ b
+	\end{pmatrix}=
+	|a|^2-|b|^2
+\end{equation}
+
+Expectation values of tensor products of Pauli strings can be found in a similar fashion \cite{LaRose2021}. For a string of 2 Pauli matrices, for example $\sigma_j^x$ and $\sigma_j^y$, use need the two qubit definition \cref{eq:TwoQubits} to find
+
+\begin{equation}\label{eq:ExpectTensor}
+	\bra{\psi_{2q}}( \sigma_j^x \otimes \sigma_j^ y) \ket{\psi_{2q}} 
+	= |\alpha_{00}|^2 - |\alpha_{01}|^2 - |\alpha_{10}|^2 + |\alpha_{11}|^2.
+\end{equation}
+
+
+
+
+
+
+
