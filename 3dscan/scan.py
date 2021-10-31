@@ -4,7 +4,6 @@
 """
 Created on Wed Sep  1 12:21:11 2021
 @author: Marijn Venderbosch
-
 This script plots a 3d scan of the tweezer. 
 Dimensions are set using the scanning step size in z-direction
 and pixel size in the r direction
@@ -21,7 +20,7 @@ import scipy.optimize
 
 #%% variables
 # mat file location
-mat_files_location = "./scan 4 0_25 Z04 correction/"
+mat_files_location = "./0_1/"
 
 # variables
 lam = 820e-9
@@ -34,16 +33,16 @@ pixel_size = 4.65
 threshold = 0.05
 # amount of space to see around the maximum location
 number_spots_expected = 1
-row_cropping_range = 45
+row_cropping_range = 30
 
 # z scan names of .mat files to import
 z_steps_per_image = 50
-z_start = -1000
+z_start = -800
 z_stop = 0
 step = 0.010585
 
 # plot range theory result
-plot_range = 6e-6
+plot_range = 4.5e-6
 dz = np.linspace(-plot_range, plot_range, 1000)
 
 # Only fit around waist, in microns
@@ -235,12 +234,13 @@ for ax in fig.get_axes():
     ax.label_outer()
     
 ax2.plot(dz_microns, intensity__defocus_normalized)
+ax2.set_xlim(-4.2, 4.2)
 #ax2.set_xlim(-4, 4)
 #ax2.set_ylim(0.2, 1.05)
 #ax2.set_aspect(1.8)
 
 # Saving
-plt.savefig('exports/correction0_23.pdf',
+plt.savefig('exports/correction_spherical_astig.pdf',
             dpi = 300)
 
 """third plot. We plot separately because x range is different"""
@@ -261,7 +261,7 @@ ax.set_ylabel(r'Intensity [a.u.]')
 ax.grid()
 
 #%% Saving
-plt.savefig('exports/correction0_23.png',
+plt.savefig('exports/corrected_astig_spherical.png',
             dpi = 300,
             bbox_inches = 'tight')
 
