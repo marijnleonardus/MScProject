@@ -7,21 +7,21 @@ Created on Thu Oct 21 20:41:31 2021
 
 Script makes a plot of the laser induced fluorescence from the MOT with
 a color overlay and a scalebar
+
+Also exports sum over rows and columms and fits a Voigt profile through it
 """
 
 #%% Imports
-from matplotlib import gridspec
-from matplotlib import ticker
 import matplotlib.pyplot as plt
 from PIL import Image
 import numpy as np
 from numpy import unravel_index
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+from scipy.optimize import curve_fit
 
 
 #%% Variables
-cropping_range = 70 # pixels
+cropping_range = 60 # pixels
 pixel_size = 4.65e-6 #microns
 magnification = 0.5      
 
@@ -41,59 +41,86 @@ RoI = array[indices[0] - cropping_range : indices[0] + cropping_range,
 # Normalize
 RoI_normalized = RoI / np.max(RoI)
 
-#%% Histograms
-# Set up x,y variables from 2D imshow
-xrange = np.linspace(0, cropping_range - 1, cropping_range)
-yrange = xrange
-xpixels, ypixels = np.meshgrid(xrange, yrange)
+# Set up x,y variables from 2D imshow plot defined as twice the cropping range
+# Multiply with magnification to get real size instead of pixels
+# Multiply by 1000 to plot in mm instead of m
+RowRange = np.linspace(-cropping_range, cropping_range - 1, 2*cropping_range) * pixel_size / magnification * 10e3 
+ColRange = np.linspace(-cropping_range, cropping_range - 1, 2*cropping_range) * pixel_size / magnification * 10e3
 
 # Compute histograms with coordinates x,y
-histogram_rows = RoI_normalized.sum(axis = 0)
-histogram_columns = RoI_normalized.sum(axis = 1)
+HistRows = RoI_normalized.sum(axis = 0) 
+HistRowsNorm = HistRows / np.max(HistRows)
 
-             
-#%% Plotting
-fig = plt.figure(figsize = (5, 5))
+HistCols = RoI_normalized.sum(axis = 1)
+HistColsNorm = HistCols / np.max(HistCols)
 
-# Define size of histogram plots 
-spacing_axesGrid_rows = 400
-spacing_axesGrid_columns = 80
-axesGrid = gridspec.GridSpec(spacing_axesGrid_rows, spacing_axesGrid_columns,
-                             hspace = 0.2, 
-                             wspace = 0.5
-                             )
+#%% Fitting
+# Fitting function
+def Gaussian(x, offset, amplitude, sigma):
+    return offset + amplitude * np.exp(-x**2 / (2 * sigma**2))
 
-axImage = plt.subplot(axesGrid[0:300, 20:80])
-# horizontal histogram
-axHistX = plt.subplot(axesGrid[302:400, 20:76])
-axHistX.plot(histogram_columns)
-# vertical histogram
-axHistY = plt.subplot(axesGrid[6:293, 0:18])
-axHistY.plot(histogram_rows)
+# Initial guess
+amplitude_guess = 1
+offset_guess = 0.1
+sigma_guess = 0.2
+guess = [offset_guess, amplitude_guess, sigma_guess]
 
-img = axImage.imshow(RoI_normalized,
-                 interpolation = 'nearest',
-                 origin = 'lower',
-                 vmin = 0.)
-img.set_cmap('jet')
-axImage.axis('off')
+poptRows, pcovRows = curve_fit(Gaussian, RowRange, HistRowsNorm, p0 = guess)
+poptCols, pcovCols = curve_fit(Gaussian, ColRange, HistColsNorm, p0 = guess)
 
-# Remove tick labels
-nullfmt = ticker.NullFormatter()
-axHistX.xaxis.set_major_formatter(nullfmt)
-axHistX.yaxis.set_major_formatter(nullfmt)
-axHistY.xaxis.set_major_formatter(nullfmt)
-axHistY.yaxis.set_major_formatter(nullfmt)
-
+#%% Plot histograms over rows and columns
+figSum, (axRow, axCol) = plt.subplots(nrows = 1,
+                                      ncols = 2,
+                                      sharey = True,
+                                      figsize = (7,3))
 # Grid
-axHistX.grid()
-axHistY.grid()
+axRow.grid()
+axCol.grid()
 
-# Scale
+# Sum over rows
+axRow.scatter(RowRange,
+              HistRowsNorm,
+              s = 4)
+axRow.set_xlabel('Horizontal plane camera [mm]')
+axRow.set_ylabel('Normalized pixel counts [a.u.]')
+
+# Sum over columns
+axCol.scatter(ColRange,
+              HistColsNorm,
+              s = 4)
+axCol.set_xlabel('Vertical plane camera [mm]')
+
+# Plot fit
+axRow.plot(RowRange,
+           Gaussian(RowRange, *poptRows),
+           color = 'red')
+axCol.plot(ColRange,
+           Gaussian(ColRange, *poptCols),
+           color = 'red')
+             
+#%% Plot MOT fluoresence image
+fig = plt.figure(figsize = (4, 3))
+ax = plt.subplot()
+
+# MOT fluoresence image
+img = ax.imshow(RoI_normalized, 
+                interpolation = 'nearest',
+                origin = 'lower',
+                vmin = 0.)
+img.set_cmap('jet')
+ax.axis('off')
+
+# Colorbar
+cb = plt.colorbar(img,
+                  ax = ax,
+                  ticks = np.linspace(0, 1, 5),
+                  orientation = 'vertical')
+
+# Scalebar
 scalebar_object_size = 200e-6 #micron
 scalebar_pixels = int(scalebar_object_size / (pixel_size / magnification)) # integer number pixels
 
-scale_bar = AnchoredSizeBar(axImage.transData,
+scale_bar = AnchoredSizeBar(ax.transData,
                            scalebar_pixels, # pixels
                            r'200 $\mu$m', # real life distance of scale bar
                            'lower left', 
@@ -101,28 +128,10 @@ scale_bar = AnchoredSizeBar(axImage.transData,
                            color = 'white',
                            frameon = False,
                            size_vertical = 2.5)
-axImage.add_artist(scale_bar)
+ax.add_artist(scale_bar)
 
-# Colorbar
-# create an axes on the right side of ax. The width of cax will be 5%
-# of ax and the padding between cax and ax will be fixed at 0.05 inch.
-divider = make_axes_locatable(axImage)
-cax = divider.append_axes("right",
-                          size= " 5%",
-                          pad = 0.05)
-
-cbar = plt.colorbar(img,
-                    ticks = np.linspace(0, 1, 3),
-                    extendrect='true',
-                    cax=cax,
-                    )
-
-
-#%% saving
-plt.savefig('exports/LiF_MOT_november2.pdf',
+#%% Saving
+plt.savefig('exports/LiF_MOT_november.pdf',
             dpi = 300,
             bbox_inches= 'tight')
-plt.savefig('exports/LiF.png',
-            dpi=300,
-            bbox_inches = 'tight')
 plt.show()
