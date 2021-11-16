@@ -44,8 +44,8 @@ RoI_normalized = RoI / np.max(RoI)
 # Set up x,y variables from 2D imshow plot defined as twice the cropping range
 # Multiply with magnification to get real size instead of pixels
 # Multiply by 1000 to plot in mm instead of m
-RowRange = np.linspace(-cropping_range, cropping_range - 1, 2*cropping_range) * pixel_size / magnification * 10e3 
-ColRange = np.linspace(-cropping_range, cropping_range - 1, 2*cropping_range) * pixel_size / magnification * 10e3
+RowRange = np.linspace(-cropping_range, cropping_range - 1, 2*cropping_range) * pixel_size / magnification * 10e2
+ColRange = np.linspace(-cropping_range, cropping_range - 1, 2*cropping_range) * pixel_size / magnification * 10e2
 
 # Compute histograms with coordinates x,y
 HistRows = RoI_normalized.sum(axis = 0) 
@@ -55,18 +55,36 @@ HistCols = RoI_normalized.sum(axis = 1)
 HistColsNorm = HistCols / np.max(HistCols)
 
 #%% Fitting
-# Fitting function
-def Gaussian(x, offset, amplitude, sigma):
-    return offset + amplitude * np.exp(-x**2 / (2 * sigma**2))
+# Fitting functions
+def Lorentzian(x, offset, amplitude, middle, width):
+    return offset + amplitude * width / ((x - middle)**2 + .25 * width**2)
 
-# Initial guess
+def Gaussian(x, a, b, c):
+    return a + b * np.exp(-(x**2) / (2*c**2))
+
+# Initial guessses
+
+# Lorentzian
 amplitude_guess = 1
 offset_guess = 0.1
-sigma_guess = 0.2
-guess = [offset_guess, amplitude_guess, sigma_guess]
+width_guess = 1
+middle_guess = 0
+LorentzianGuess = [offset_guess, amplitude_guess, middle_guess, width_guess]
 
-poptRows, pcovRows = curve_fit(Gaussian, RowRange, HistRowsNorm, p0 = guess)
-poptCols, pcovCols = curve_fit(Gaussian, ColRange, HistColsNorm, p0 = guess)
+# Gaussian guess
+a = 0.1
+b = 1
+c = 0.1
+GaussianGuess = [a, b, c]
+
+# Fit Lorentzian
+poptRows, pcovRows = curve_fit(Lorentzian, RowRange, HistRowsNorm, p0 = LorentzianGuess)
+poptCols, pcovCols = curve_fit(Lorentzian, ColRange, HistColsNorm, p0 = LorentzianGuess)
+
+# Fit Gaussian
+# We don't plot the Gaussian but only use it to get an estimate of the sigma
+poptRowsGauss, pcovRowsGauss = curve_fit(Gaussian, RowRange, HistRowsNorm, p0 = GaussianGuess)
+poptColsGauss, pcovGolsGauss = curve_fit(Gaussian, ColRange, HistColsNorm, p0 = GaussianGuess)
 
 #%% Plot histograms over rows and columns
 figSum, (axRow, axCol) = plt.subplots(nrows = 1,
@@ -80,23 +98,29 @@ axCol.grid()
 # Sum over rows
 axRow.scatter(RowRange,
               HistRowsNorm,
-              s = 4)
+              s = 7)
 axRow.set_xlabel('Horizontal plane camera [mm]')
 axRow.set_ylabel('Normalized pixel counts [a.u.]')
 
 # Sum over columns
 axCol.scatter(ColRange,
               HistColsNorm,
-              s = 4)
+              s = 7)
 axCol.set_xlabel('Vertical plane camera [mm]')
 
 # Plot fit
 axRow.plot(RowRange,
-           Gaussian(RowRange, *poptRows),
+           Lorentzian(RowRange, *poptRows),
            color = 'red')
 axCol.plot(ColRange,
-           Gaussian(ColRange, *poptCols),
+           Lorentzian(ColRange, *poptCols),
            color = 'red')
+
+# Plot Gaussian, uncomment to show
+# axRow.plot(RowRange, 
+#            Gaussian(RowRange, *poptRowsGauss))
+# axCol.plot(ColRange,
+#            Gaussian(ColRange, *poptColsGauss))
              
 #%% Plot MOT fluoresence image
 fig = plt.figure(figsize = (4, 3))
@@ -130,8 +154,12 @@ scale_bar = AnchoredSizeBar(ax.transData,
                            size_vertical = 2.5)
 ax.add_artist(scale_bar)
 
-#%% Saving
+#%% Saving and printing Sigma
 plt.savefig('exports/LiF_MOT_november.pdf',
             dpi = 300,
             bbox_inches= 'tight')
+
+GaussianSigma = 0.5 * (poptRowsGauss[2] + poptColsGauss[2])
+print('sigma is: ' + str(GaussianSigma) + ' um')
+
 plt.show()
