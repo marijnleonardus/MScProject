@@ -19,10 +19,16 @@ import matplotlib.pyplot as plt
 
 location = 'images/' 
 filename  = 'rescaled bmp output.bmp'
-bmp_file = Image.open(location + filename)
-array = np.array(bmp_file)
+
+def bmp_import(location, filename):
+    bmp_file = Image.open(location + filename)
+    array = np.array(bmp_file)
+    return array
+    
+image = bmp_import(location, filename)
 
 #%% plotting and saving
 
-fig, ax = plt.subplots()
-ax.imshow(array)
+def plot_image(array):
+    fig, ax = plt.subplots()
+    ax.imshow(image)
