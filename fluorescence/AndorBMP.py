@@ -32,3 +32,5 @@ image = bmp_import(location, filename)
 def plot_image(array):
     fig, ax = plt.subplots()
     ax.imshow(image)
+
+plot_image(image)
