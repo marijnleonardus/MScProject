@@ -75,13 +75,24 @@ RoI = RoI_crop(image, cropping_pixels)
 
 def plot_image(array):
     fig, ax = plt.subplots(figsize = (3,3))
-    plt.locator_params(axis="y", nbins=5)
+   
+    extend = [0 , 2 * pixel_size * magnification * cropping_pixels,
+              0 , 2 * pixel_size * magnification * cropping_pixels]
+   
     ax.imshow(array,
               cmap = 'viridis',
-              origin = 'lower'
+              origin = 'lower',
+              extent = extend
               )
+    
     ax.set_xlabel(r'$x$ [$\mu$m]')
     ax.set_ylabel(r'$y$ [$\mu$m]')
+    
+    markings = 4
+    plt.locator_params(axis = "x", nbins = markings)
+    plt.locator_params(axis = "y", nbins = markings)
+    
+    
 
 plot_image(RoI)
 plt.savefig('exports/TopCCDimage.png',
