@@ -39,15 +39,15 @@ raw_normalized = np.array(raw_array[:, 1]) / np.max(raw_array[:, 1])
 
 #%%plotting
 #ax.plot(lut_813[:, 1], label = '813.lut')
-fig, ax = plt.subplots(figsize = (5,3))
+fig, ax = plt.subplots(figsize = (3.3, 2.2))
 line1 = ax.plot(lut_820,
         label = 'LUT',
-        color = 'blue')
+        color = 'navy')
 
 ax.grid()
 ax.set_xlabel('grey level 0-255')
 ax.set_ylabel('voltage response [V]',
-              color = 'blue')
+              color = 'navy')
 ax.set_ylim(-0.2, 5.2)
 
 # raw data. Use same x axis, other y
@@ -65,4 +65,4 @@ labels = [l.get_label() for l in lines]
 plt.legend(lines, labels, loc = 'upper left')
 
 #%% saving
-plt.savefig('lut_plot.pdf', dpi = 300, bbox_inches = 'tight')
+plt.savefig('LUTplot.pdf', dpi = 300, bbox_inches = 'tight')
