@@ -37,6 +37,7 @@ waist = beam_width_list()
 
 # Calculate power transmission, which is integration over I(x) in one dimension
 # Derived by hand and checked with mathematica, this is only the final result
+
 def transmission(beam_width, short_axis):
         transmission = scipy.special.erf(np.sqrt(2) * short_axis / beam_width)
         return transmission
@@ -56,6 +57,7 @@ total_transmission = total_transmission(waist, S_x, S_y)
 #%% plotting
 
 # Initialize plot
+
 fig1, ax1 = plt.subplots(1, 1, figsize = (4, 3))
 ax1.grid()
 
@@ -66,15 +68,13 @@ ax1.plot(waist, total_transmission, '-', label = r'$P/P_0$')
 ax1.axvline(x = 1, color = 'grey', linestyle = 'solid')
 
 # Set lables, title
+
 ax1.set_xlabel(r'$w/S_x$')
 ax1.set_ylabel(r'$P/P_0$ [%]')
-ax1.set_title('Power transmission'
-             '\n'
-             r'aperture size $(2S_x,2S_y) =(8,15)$ mm')
 ax1.legend()
 
 # Save plot and show
-
 plt.savefig('transmission_rectangular.pdf',
-            tight_layout = True)
+            bbox_inches = 'tight',
+            dpi = 300)
 plt.show()
