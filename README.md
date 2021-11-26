@@ -5,6 +5,6 @@ My MSc project is about making an array op optical tweezers using a spatial ligh
 The end goal is to use these optical tweezers to trap individual Sr atoms for a hybrid quantum computer. 
 
 ### Organisation
-- Analysis of experimental data:``DataAnalysis``folder
+- Analysis of experimental data: ``DataAnalysis`` folder
 - Calculations and theory predictions: ``Calculations`` folder
 - SDK and interaction with hardware (e.g. SLM): ``Hardware`` folder
