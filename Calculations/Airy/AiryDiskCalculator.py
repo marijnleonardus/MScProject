@@ -1,4 +1,6 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 """
 Created on Mon Nov 29 16:16:16 2021
 
@@ -98,11 +100,22 @@ fig, (ax1, ax2) = plt.subplots(ncols = 2,
                        nrows = 1,
                        figsize = (6, 2))
 
+
 # 1D plot
 ax1.grid()
 ax1.plot(u, intensity_1D)
-ax1.set_ylabel('Normalized Intensity')
-ax1.set_xlabel(r'$k r^{\prime} R/f$')
+ax1.set_ylabel(r'$I/I_0$')
+ax1.set_xlabel(r'$k r R/f$')
+
+# Label
+ax1.text(0.85, 
+         0.95, 
+         'a)', 
+         transform = ax1.transAxes,
+         fontsize = 12,
+         va = 'top',
+      )
+
 
 # Tick label frequency
 
@@ -119,7 +132,7 @@ im = ax2.imshow(intensity_2D,
                 extent = [-plot_range, plot_range,
                           -plot_range, plot_range],
                 cmap = 'jet')
-ax2.set_xlabel(r'$k r^{\prime} R/f$')
+ax2.set_xlabel(r'$k r R/f$')
 
 # Tick label frequency
 
@@ -136,10 +149,21 @@ cax = divider.append_axes("right",
                           size = "8%",
                           pad = 0.1)
 
+# Label 
+ax2.text(0.8, 
+         0.95, 
+         'b)', 
+         transform = ax2.transAxes,
+         fontsize = 12,
+         va = 'top',
+         color = 'white'
+      )
+
 plt.colorbar(im, cax=cax)
 
 #%% Showing, saving
 
 plt.savefig('exports/AiryDisk.pdf', 
             dpi = 300,
-            bbox_inches = 'tight')
+            bbox_inches = 'tight',
+            pad_inches = 0)
