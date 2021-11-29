@@ -26,14 +26,25 @@ f = 1
 
 # 2D plot amount of data points per axis ('pixels') and range
 
-data_points = 8
+data_points = 100
 plot_range = 8
 
 #%% Functions
 
-# Jinc function J_1(x) / x avoids devision by zero
+# Jinc function J_1(x) / x 
+# It does not calculate when input is zero, then it outputs 'exception' matrix
+
 def jinc(x):
-    return jn(1, x) / x
+    
+    # initialize array returned when x = 0
+    # jinc function will be 1/2 here 
+    exception = 0.5 * np.ones_like(jn(1,x))
+    
+    # devide jn(1,x) by x (jinc function)
+    return np.divide(jn(1, x), 
+                     x, 
+                     out = exception, 
+                     where = x!=0)
 
 def intensity_1D(u):
     field = jinc(k * R * u / f)
@@ -51,15 +62,12 @@ def intensity_2D(X, Y):
 # 1D
 # independent variable u is dimensionless unit in terms of k f / R
 
-u = np.linspace(0, 10, 100)
-intensity_1D = np.zeros(len(u))
+# avoid devision by zero
+u = np.linspace(0.001, plot_range, 100)
+intensity_1D = intensity_1D(u)
 
-def devision(u):
-    for index in range(len(u)):
-        if index == 0:
-            intensity_1D[index] = 0.5
-        else:
-            intensity_1D[index] = intensity_1D(index)
+# normalize
+intensity_1D = intensity_1D / np.max(intensity_1D)
 
 # 2D
 
@@ -78,7 +86,10 @@ def meshgrid_generator(plot_range, data_points):
     return X, Y, x_mid, y_mid
 
 X, Y, x_mid, y_mid = meshgrid_generator(plot_range, data_points)
+
 intensity_2D = intensity_2D(X, Y)
+# normalize
+intensity_2D = intensity_2D / np.max(intensity_2D)
 
 #%% Plotting
 
@@ -91,6 +102,7 @@ fig, (ax1, ax2) = plt.subplots(ncols = 2,
 ax1.grid()
 ax1.plot(u, intensity_1D)
 ax1.set_ylabel('Normalized Intensity')
+ax1.set_xlabel(r'$k r^{\prime} R/f$')
 
 # Tick label frequency
 
@@ -107,6 +119,7 @@ im = ax2.imshow(intensity_2D,
                 extent = [-plot_range, plot_range,
                           -plot_range, plot_range],
                 cmap = 'jet')
+ax2.set_xlabel(r'$k r^{\prime} R/f$')
 
 # Tick label frequency
 
@@ -130,4 +143,3 @@ plt.colorbar(im, cax=cax)
 plt.savefig('exports/AiryDisk.pdf', 
             dpi = 300,
             bbox_inches = 'tight')
-
