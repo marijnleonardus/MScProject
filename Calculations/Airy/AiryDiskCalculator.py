@@ -100,7 +100,6 @@ fig, (ax1, ax2) = plt.subplots(ncols = 2,
                        nrows = 1,
                        figsize = (6, 2))
 
-
 # 1D plot
 ax1.grid()
 ax1.plot(u, intensity_1D)
@@ -132,7 +131,7 @@ im = ax2.imshow(intensity_2D,
                 extent = [-plot_range, plot_range,
                           -plot_range, plot_range],
                 cmap = 'jet')
-ax2.set_xlabel(r'$k r R/f$')
+ax2.axis('off')
 
 # Tick label frequency
 
@@ -162,6 +161,12 @@ ax2.text(0.8,
 plt.colorbar(im, cax=cax)
 
 #%% Showing, saving
+
+# Spacing between the plots
+plt.subplots_adjust(
+                    wspace=0
+                    )
+
 
 plt.savefig('exports/AiryDisk.pdf', 
             dpi = 300,
