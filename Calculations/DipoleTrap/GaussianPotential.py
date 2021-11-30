@@ -3,9 +3,7 @@
 
 """
 Created on Fri Mar 19 14:55:26 2021
-
 @author: Marijn Venderbosch
-
 Script computes dipole potential from Gaussian beam
 """
 
@@ -97,16 +95,18 @@ tickslist = np.linspace(gaussian_potential.min(),
 cbar = fig.colorbar(surf, 
              shrink = 0.5,
              aspect = 9, 
-             pad = 0.15,
-             ticks = tickslist
+             pad = 0,
+             ticks = tickslist,
+             location = 'left'
              )
 
 # Labels
 
 ax.set_xlabel(r'$r/w_0$')
-ax.xaxis.labelpad = 1
+ax.xaxis.labelpad = -7
 
 ax.set_ylabel(r'$z/z_R$')
+ax.yaxis.labelpad = -3
 
 ax.set_zlabel(r'$U(r,z)/U_0$')
 ax.zaxis.labelpad = 8
@@ -127,6 +127,10 @@ loc_0_25 = plticker.MultipleLocator(base = 0.2)
 ax.xaxis.set_major_locator(loc_1)
 ax.yaxis.set_major_locator(loc_1)
 ax.zaxis.set_major_locator(loc_0_25)
+
+# Angle
+ax.view_init(30,
+             135)
 
 
 # Saving
