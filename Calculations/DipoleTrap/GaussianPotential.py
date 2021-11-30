@@ -68,11 +68,11 @@ gaussian_potential = - factor * light_intensity
 gaussian_potential =- gaussian_potential / np.min(gaussian_potential)
 #%% Plotting
 
-fig = plt.figure(figsize = (5, 3))
+fig = plt.figure(figsize = (5.5, 3))
 ax = fig.gca(projection = '3d')
 
 surf = ax.plot_surface(r, z, gaussian_potential,
-                       cmap = cm.coolwarm, 
+                       cmap = cm.viridis, 
                        linewidth = 0, 
                        antialiased = True,
                        vmin = -1,
@@ -103,8 +103,12 @@ ax.grid()
 # Ticks
 
 loc_1 = plticker.MultipleLocator(base = 1) 
+loc_0_25 = plticker.MultipleLocator(base = 0.25) 
+
 ax.xaxis.set_major_locator(loc_1)
 ax.yaxis.set_major_locator(loc_1)
+ax.zaxis.set_major_locator(loc_0_25)
+
 
 # Saving
 
