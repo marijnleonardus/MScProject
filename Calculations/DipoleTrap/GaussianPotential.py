@@ -68,7 +68,8 @@ gaussian_potential = - factor * light_intensity
 gaussian_potential =- gaussian_potential / np.min(gaussian_potential)
 #%% Plotting
 
-fig = plt.figure(figsize = (6, 3))
+fig = plt.figure(figsize = (5, 3))
+fig.tight_layout()
 ax = fig.gca(projection = '3d')
 ax.grid()
 
@@ -113,6 +114,13 @@ ax.zaxis.labelpad = 8
 
 # Ticks
 
+ax.tick_params(axis = 'x',
+               which = 'major',
+               pad = -4)
+ax.tick_params(axis = 'y',
+               which = 'major',
+               pad = -3)
+
 loc_1 = plticker.MultipleLocator(base = 1) 
 loc_0_25 = plticker.MultipleLocator(base = 0.2) 
 
@@ -125,6 +133,6 @@ ax.zaxis.set_major_locator(loc_0_25)
 
 plt.savefig('exports/GaussianTrapDepth.pdf',
             dpi = 300,
-            bbox_inches = 'tight',
-            pad_inches = 0
+            pad_inches = 0,
+            bbox_inches = 'tight'            
             )
