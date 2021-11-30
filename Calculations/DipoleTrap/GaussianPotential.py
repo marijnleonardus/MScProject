@@ -37,6 +37,7 @@ spacing_z = 100
 # Create 2D grid
 
 def grid(plotrange_r, spacing_r, plotrange_z, spacing_z):
+    
     rv = np.linspace(-plotrange_r, plotrange_r, spacing_r)
     zv = np.linspace(-plotrange_z, plotrange_z, spacing_z)
 
@@ -65,6 +66,10 @@ light_intensity = gaussian_beam(w_0, z_R, r, z)
 gaussian_potential = - factor * light_intensity
 gaussian_potential =- gaussian_potential / np.min(gaussian_potential)
 #%% Plotting
+
+# Latex rendering
+
+plt.rc('font', family = 'sans-serif')
 
 fig = plt.figure(figsize = (5, 3))
 fig.tight_layout()
@@ -102,13 +107,13 @@ cbar = fig.colorbar(surf,
 
 # Labels
 
-ax.set_xlabel(r'$r/w_0$')
+ax.set_xlabel(r'$r/w_0$', usetex = True, family = 'serif')
 ax.xaxis.labelpad = -7
 
-ax.set_ylabel(r'$z/z_R$')
+ax.set_ylabel(r'$z/z_R$', usetex = True, family = 'serif')
 ax.yaxis.labelpad = -3
 
-ax.set_zlabel(r'$U(r,z)/U_0$')
+ax.set_zlabel(r'$U(r,z)/U_0$', usetex = True, family = 'serif')
 ax.zaxis.labelpad = 8
 
 
@@ -129,6 +134,7 @@ ax.yaxis.set_major_locator(loc_1)
 ax.zaxis.set_major_locator(loc_0_25)
 
 # Angle
+
 ax.view_init(30,
              135)
 
@@ -136,7 +142,7 @@ ax.view_init(30,
 # Saving
 
 plt.savefig('exports/GaussianTrapDepth.pdf',
-            dpi = 300,
+            dpi = 200,
             pad_inches = 0,
             bbox_inches = 'tight'            
             )
