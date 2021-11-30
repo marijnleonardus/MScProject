@@ -68,8 +68,9 @@ gaussian_potential = - factor * light_intensity
 gaussian_potential =- gaussian_potential / np.min(gaussian_potential)
 #%% Plotting
 
-fig = plt.figure(figsize = (5.5, 3))
+fig = plt.figure(figsize = (6, 3))
 ax = fig.gca(projection = '3d')
+ax.grid()
 
 surf = ax.plot_surface(r, z, gaussian_potential,
                        cmap = cm.viridis, 
@@ -78,6 +79,12 @@ surf = ax.plot_surface(r, z, gaussian_potential,
                        vmin = -1,
                        vmax = 0
                        )
+
+# Aspect Ratio
+
+ax.set_box_aspect((np.ptp(r),
+                   1.5 * np.ptp(z), 
+                   5 * np.ptp(gaussian_potential)))
 
 # Colorbar 
 
@@ -93,17 +100,21 @@ cbar = fig.colorbar(surf,
              ticks = tickslist
              )
 
-# Colorbar ticks
+# Labels
 
 ax.set_xlabel(r'$r/w_0$')
+ax.xaxis.labelpad = 1
+
 ax.set_ylabel(r'$z/z_R$')
+
 ax.set_zlabel(r'$U(r,z)/U_0$')
-ax.grid()
+ax.zaxis.labelpad = 8
+
 
 # Ticks
 
 loc_1 = plticker.MultipleLocator(base = 1) 
-loc_0_25 = plticker.MultipleLocator(base = 0.25) 
+loc_0_25 = plticker.MultipleLocator(base = 0.2) 
 
 ax.xaxis.set_major_locator(loc_1)
 ax.yaxis.set_major_locator(loc_1)
