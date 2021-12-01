@@ -141,3 +141,5 @@ dmypy.json
 *.jpg
 .mat
 *.mat
+*.pdf
+Calculations/MOT/exports/MOTplot.pdf
