@@ -1,4 +1,6 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 """
 Created on Tue Nov 16 15:54:53 2021
 
@@ -8,6 +10,7 @@ Script fits x and y histograms
 """
 
 #%% Imports
+
 from matplotlib import gridspec
 from matplotlib import ticker
 import matplotlib.pyplot as plt
@@ -18,6 +21,7 @@ from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 from scipy.optimize import curve_fit
 
 #%% Variables
+
 cropping_range = 30 # pixels
 pixel_size = 4.65e-6 # micron
 magnification = 0.5
@@ -55,6 +59,7 @@ hist_cols = RoI_normalized.sum(axis = 1)
 hist_cols_norm = hist_cols / np.max(hist_cols)
 
 #%%Fitting
+
 # Fit Data copied from other MOT LiF script
 
 # Fitting function
@@ -73,6 +78,7 @@ fit_params_rows_pixels, cov_rows_pixels = curve_fit(lorentzian, row_range_pixels
 fit_params_cols_pixels, cov_cols_pixels = curve_fit(lorentzian, col_range_pixels, hist_cols_norm, p0 = lorentzian_guess)
 
 #%% Plotting
+
 fig = plt.figure(figsize = (5, 5))
 
 # Define size of histogram plots 
@@ -142,7 +148,9 @@ scale_bar = AnchoredSizeBar(ax_img.transData,
 ax_img.add_artist(scale_bar)
 
 #%% saving
+
 plt.savefig('exports/LiF_MOT_histograms.pdf',
-            dpi = 300,
+            dpi = 200,
+            pad_inches = 0,
             bbox_inches= 'tight')
 plt.show()

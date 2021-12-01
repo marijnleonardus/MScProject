@@ -133,3 +133,11 @@ dmypy.json
 *.pdf
 *.png
 .png
+
+# data files typically images
+.bmp
+*.bmp
+.jpg
+*.jpg
+.mat
+*.mat
