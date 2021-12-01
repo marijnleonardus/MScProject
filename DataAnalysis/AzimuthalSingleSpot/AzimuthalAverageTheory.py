@@ -16,6 +16,7 @@ import numpy as np
 import scipy.io
 from skimage.feature import blob_log
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 from scipy.special import jv
 
 #%% Variables
@@ -42,6 +43,10 @@ aperture_radius = 2e-3
 wavelength = 820e-9
 wavenumber = 2*np.pi / wavelength
 focal_length = 4e-3
+
+# 2D plot zoom size
+plot_range_x = 20
+plot_range_y =30
 
 #%% Functions
 
@@ -72,7 +77,7 @@ def load_and_save(mat_file):
 image_cropped = load_and_save(location + file_name)
  
 
-#%% spot detection
+#%% Spot detection
 
 """The following part will detect maxima using the Laplacian of Gaussian algorithm,
 it will plot the spots as well"""
@@ -228,7 +233,7 @@ def airy(f, k, radial_distance, R):
 
 airy_intensity = airy(focal_length, wavenumber, radial_distance, aperture_radius)
     
-#%% plotting, saving
+#%% Plotting 1D plot of theory vs measurement
 
 fig, ax = plt.subplots(1,1, figsize = (3.5, 2.5))
 ax.grid()
@@ -260,9 +265,50 @@ ax.set_ylabel(r'$I/I_0$', usetex = True)
 ax.legend()
 ax.set_xlim(0, 2)
 
-# Saving
-
 plt.savefig('exports/AzimuthalAverage.pdf',
             dpi = 200,
             pad_inches = 0,
             bbox_inches = 'tight')
+
+
+#%% Plotting 2D plot of spot with color overlay
+
+# Zoom the image further
+
+def crop_center(img, cropx, cropy):
+
+    startx = int(maxima_locations[0]) - cropx//2
+    starty = int(maxima_locations[1]) - cropy//2    
+    zoomed =  img[starty:starty+cropy, 
+               startx:startx+cropx]
+    return zoomed
+
+image_zoomed = crop_center(image_cropped, 80, 60)
+
+fig2, ax2 = plt.subplots(1, 1, figsize = (3.5, 2.5))
+zoomed_plot = ax2.imshow(image_zoomed)
+ax2.axis('off')
+
+# Scalebar
+
+scalebar_object_size = 1e-6 #micron
+
+scalebar_pixels = int(scalebar_object_size * magnification / pixel_microns * 1e6) # integer number pixels
+
+scale_bar = AnchoredSizeBar(ax2.transData,
+                           scalebar_pixels, # pixels
+                           r'1 $\mu$m', # real life distance of scale bar
+                           'upper left', 
+                           pad = 1,
+                           color = 'white',
+                           frameon = False,
+                           size_vertical = 1
+                           )
+
+ax2.add_artist(scale_bar)
+
+plt.savefig('exports/SingleSpotZoomed.pdf',
+            dpi = 200,
+            pad_inches = 0,
+            bbox_inches = 'tight'
+            )

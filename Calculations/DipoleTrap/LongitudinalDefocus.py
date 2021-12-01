@@ -51,8 +51,9 @@ def ideal_PSF(u):
 
 PSF_intensity = ideal_PSF(z_data)
 
-#%% ploting
+#%% Plotting
 
+# 1D plot of theory vs measurement
 fig, ax = plt.subplots(figsize = (4, 2.5))
 plt.grid()
 
@@ -69,6 +70,9 @@ plt.plot(dz_microns, PSF_intensity,
 ax.set_xlabel(r'$\delta z$ [$\mu$m]', usetex = True)
 ax.set_ylabel(r'$I/I_0$', usetex = True)
 ax.legend()
+
+
+
 
 #%% Saving
 plt.savefig('exports/LongitudinalTweezerField.pdf',
