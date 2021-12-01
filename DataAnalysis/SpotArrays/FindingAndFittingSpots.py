@@ -292,13 +292,13 @@ plt.savefig('exports/SpotsCropped_range10.png', dpi = 500)
 #%% 3d plot to see how it went
 """We want to export one 3d image of the fit of G(x,y) to see how it went"""
 # Initialize figure
-fig =plt.figure(figsize = (8, 6))
+fig =plt.figure(figsize = (5, 4))
 ax = plt.axes(projection='3d')
 
 # Plot data from camera as dots
 ax.scatter3D(x,y,spots_cropped[0],
              color = 'black',
-             s = 0.7,
+             s = 1,
              label = 'Data points'
              )
 
@@ -309,16 +309,33 @@ im = ax.plot_surface(x,y,first_peak,
                 rstride = 1,
                 cstride = 1,
                 alpha = 0.5,
-                cmap = cm.viridis,
+                cmap = cm.jet,
                 label = '2D Gaussian fit'
                 )
-cb = plt.colorbar(im)
-ax.set_xlabel(r'$x$ [pixels]')
-ax.set_ylabel(r'$y$ [pixels]')
-ax.set_zlabel(r'$G(x,y)$ [a.u.]')
-ax.view_init(30,50)
 
-plt.savefig('exports/3dfit_show.pdf', dpi = 500, tight_layout = False)
+ax.invert_xaxis()
+ax.tick_params(axis='x', which='major', pad=-2)
+ax.tick_params(axis='y', which='major', pad=-2)
+#ax.invert_yaxis()
+
+ax.set_xlabel(r'$x$ [pixels]',
+              labelpad = -2,
+              usetex = True)
+
+ax.set_ylabel(r'$y$ [pixels]', 
+              labelpad = -2,
+              usetex = True)
+
+ax.set_zlabel(r'$G(x,y)/G_0$', 
+              labelpad = -1,
+              usetex = True)
+
+ax.view_init(20, 35)
+
+plt.savefig('exports/3DSpotFitGaussian.pdf', 
+            dpi = 200, 
+            pad_inches = 0,
+            bbox_inches = 'tight')
 
 # We want to store the exact spot locations in (pixels_x, pixels_y), but sub-pixel from fits
 def store_max_peaks_subpixel(list_input):

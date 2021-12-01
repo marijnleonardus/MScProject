@@ -18,6 +18,8 @@ from skimage.feature import blob_log
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 from scipy.special import jv
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 
 #%% Variables
 
@@ -285,14 +287,17 @@ def crop_center(img, cropx, cropy):
 
 image_zoomed = crop_center(image_cropped, 80, 60)
 
+# Normalize
+image_zoomed = image_zoomed / np.max(image_zoomed)
+
 fig2, ax2 = plt.subplots(1, 1, figsize = (3.5, 2.5))
 zoomed_plot = ax2.imshow(image_zoomed)
 ax2.axis('off')
 
 # Scalebar
 
+# Define real life size of scalebar and corresponding amount of pixels
 scalebar_object_size = 1e-6 #micron
-
 scalebar_pixels = int(scalebar_object_size * magnification / pixel_microns * 1e6) # integer number pixels
 
 scale_bar = AnchoredSizeBar(ax2.transData,
@@ -306,6 +311,15 @@ scale_bar = AnchoredSizeBar(ax2.transData,
                            )
 
 ax2.add_artist(scale_bar)
+
+# Colorbar
+
+divider = make_axes_locatable(ax2)
+cax = divider.append_axes("right",
+                          size = "8%",
+                          pad = 0.1)
+plt.colorbar(zoomed_plot, cax=cax)
+
 
 plt.savefig('exports/SingleSpotZoomed.pdf',
             dpi = 200,
