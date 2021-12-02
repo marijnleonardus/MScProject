@@ -8,6 +8,10 @@ Created on Tue Aug 10 10:41:07 2021
 This script will compute the azimuthal average around a spot.
 Preferably a single spot so the rings are clearly visible. 
 
+It will also plot this azimuthal average, as well as the 2D gaussian fit
+
+Also plots the tweezer spot as a double check
+
 """
 
 #%% Imports
@@ -20,8 +24,7 @@ from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 from scipy.special import jv
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy import optimize 
-
-
+from matplotlib import cm
 
 #%% Variables
 
@@ -468,3 +471,51 @@ print("R-squared is: " + str(r_squared))
 
 waist = 2 * sigma_r_pixels * 4.65 / magnification
 print("Waist is: " + str(waist))
+
+"""plot 3D fit result in 3D plot"""
+
+fig =plt.figure(figsize = (5, 4))
+ax = plt.axes(projection='3d')
+
+# Plot data from camera as dots
+ax.scatter3D(pixels_mesh_x, pixels_mesh_y, img_RoI,
+             color = 'black',
+             s = 1,
+             label = 'Data points',
+             cmap = cm.jet
+             )
+
+# Plot gaussian fit 
+
+peak = two_D_gaussian((pixels_mesh_x, pixels_mesh_y), *popt).reshape(2 * cropping_range + 1, 2 * cropping_range + 1)
+im = ax.plot_surface(pixels_mesh_x, pixels_mesh_y, peak,
+                rstride = 1,
+                cstride = 1,
+                alpha = 0.5,
+                label = '2D Gaussian fit',
+                cmap = cm.jet
+                )
+
+ax.invert_xaxis()
+ax.tick_params(axis='x', which='major', pad=-2)
+ax.tick_params(axis='y', which='major', pad=-2)
+#ax.invert_yaxis()
+
+ax.set_xlabel(r'$x$ [pixels]',
+              labelpad = -2,
+              usetex = True)
+
+ax.set_ylabel(r'$y$ [pixels]', 
+              labelpad = -2,
+              usetex = True)
+
+ax.set_zlabel(r'$G(x,y)/G_0$', 
+              labelpad = -1,
+              usetex = True)
+
+ax.view_init(20, 35)
+
+plt.savefig('exports/3DSpotFitGaussian.pdf', 
+            dpi = 200, 
+            pad_inches = 0,
+            bbox_inches = 'tight')
