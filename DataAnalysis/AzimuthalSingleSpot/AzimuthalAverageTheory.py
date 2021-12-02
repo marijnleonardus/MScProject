@@ -19,6 +19,8 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 from scipy.special import jv
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from scipy import optimize 
+
 
 
 #%% Variables
@@ -28,6 +30,9 @@ magnification = 71.14
 
 # Camera pixel size
 pixel_microns = 4.65
+
+# Crop for fit
+cropping_range = 10
 
 # Threshold for LoG detection
 threshold = 0.2
@@ -54,6 +59,7 @@ plot_range_y =30
 
 """" The following function will take the .mat file and export a grayscale numpy array
 with similar dimensions as the accompanying screenshot"""
+
 def load_and_save(mat_file):
     mat_file = scipy.io.loadmat(mat_file)
     
@@ -64,6 +70,7 @@ def load_and_save(mat_file):
     # match the screenshot that is saved as well. The coordinates used to crop 
     # the screenshot are stored in the .mat directory
     # coordinates need to convert from a 1x1 array to an integer
+    
     cam_x_min = int(mat_file['cam_x_min'])
     cam_x_max = int(mat_file['cam_x_max'])
 
@@ -142,6 +149,7 @@ maxima_locations = spot_detection(image_cropped)
 
 
 #%% azimuthal average
+
 """"radial profile
 We want to compute the azimuthal average"""
 
@@ -190,8 +198,9 @@ measurement = azimuthal_average(image_cropped, maxima_locations)
 
 
 #%% numerical integration, theory calculation
-"""from tweezer vs airy script"""
-# Computes theory result
+
+""" Integrate diffraciton equation for gaussian waist equal to aperture radisu"""
+
 # Radius in focal plane, as well as initializing empty tweezer matrix
 tweezer_matrix = []
 
@@ -235,7 +244,7 @@ def airy(f, k, radial_distance, R):
 
 airy_intensity = airy(focal_length, wavenumber, radial_distance, aperture_radius)
     
-#%% Plotting 1D plot of theory vs measurement
+#%% Measurement vs result diffraction theory
 
 fig, ax = plt.subplots(1,1, figsize = (3.5, 2.5))
 ax.grid()
@@ -260,7 +269,7 @@ ax.scatter(radial_distance_microns, measurement,
 
 # Plot Airy theory result
 
-ax.plot(radial_distance_microns, airy_intensity, label = 'point spread function')
+ax.plot(radial_distance_microns, airy_intensity, label = 'PSF')
 
 ax.set_xlabel(r'$r$ [$\mu$m]', usetex = True)
 ax.set_ylabel(r'$I/I_0$', usetex = True)
@@ -273,8 +282,7 @@ plt.savefig('exports/AzimuthalAverage.pdf',
             bbox_inches = 'tight')
 
 
-#%% Plotting 2D plot of spot with color overlay
-
+#%% Imshow plot of tweezer
 # Zoom the image further
 
 def crop_center(img, cropx, cropy):
@@ -326,3 +334,137 @@ plt.savefig('exports/SingleSpotZoomed.pdf',
             pad_inches = 0,
             bbox_inches = 'tight'
             )
+
+#%% 2D fit
+
+# Define 2D gaussian fit function. Formula is in thesis
+
+def two_D_gaussian(X, amplitude, x0, y0, sigma_x, sigma_y):
+    
+    # We define the function to fit: a particular example of a 2D gaussian
+    # indepdent variables x,y are passed as a single variable X (curve_fit only 
+    # accepts 1D fitting, therefore the result is raveled 
+    
+    x, y = X 
+    exponent = -0.5 * (sigma_x)**(-2) * (x - x0)**2 - 0.5 * (sigma_y)**(-2) * (y - y0)**2
+    intensity = amplitude * np.exp(exponent)
+    
+    return intensity.ravel()
+
+# Crop tweezer spot to RoI to fit. RoI is in the O(10) pixels
+
+def crop_RoI(fit_image, maxima_locations, cropping_range):
+    
+    # Store coordinates where maximum was detected 
+    row_max = int(maxima_locations[1])
+    col_max = int(maxima_locations[0])
+    
+    # RoI boundaries. RoI is 2*cropping_range x 2*cropping_range
+    lower_x = row_max - cropping_range
+    upper_x = row_max + cropping_range + 1
+    
+    lower_y = col_max - cropping_range
+    upper_y = col_max + cropping_range + 1
+    
+    # RoI crop
+    fit_image = image_cropped[lower_x : upper_x,
+                              lower_y : upper_y]
+    
+    # Normalize
+    fit_image = fit_image / np.max(fit_image)
+    
+    # Ravel for fit
+    fit_image_raveled = fit_image.ravel()
+    return fit_image, fit_image_raveled
+    
+img_RoI, img_RoI_raveled = crop_RoI(image_cropped, maxima_locations, cropping_range)
+ 
+
+# Fit needs 2D meshgrid
+
+def twoD_mesh(cropping_range):
+    
+    # Pixel 1D matrices (discreet)
+
+    pixels_x = np.arange(0, 2 * cropping_range + 1, 1)
+    pixels_y = np.arange(0, 2 * cropping_range + 1, 1)
+    
+    # 2D matrix
+    x, y = np.meshgrid(pixels_x, pixels_y)
+    
+    return x, y
+
+pixels_mesh_x, pixels_mesh_y = twoD_mesh(cropping_range)
+
+initial_guess = (1,  # amplitude
+                 cropping_range, cropping_range, # center
+                 cropping_range / 4, cropping_range / 4) # sigma
+
+# Perform the 2D fit, using the Gaussian function and initial guess
+popt, pcov = optimize.curve_fit(two_D_gaussian,
+                                    (pixels_mesh_x, pixels_mesh_y),
+                                    img_RoI_raveled,
+                                    p0 = initial_guess)
+
+# Store invididual fits 'popt' in a single variable containing all data over all the spots
+
+fig3, ax3 = plt.subplots(figsize = (4, 4))
+
+# Sigma radial direction
+sigma_r_pixels = 0.5 * (popt[3] + popt[4])
+
+""""plotting"""
+
+# Plot images around (0,0) instead of origin in upper left corner.
+ 
+extent = [-cropping_range ,cropping_range ,
+          -cropping_range, cropping_range]
+
+# Extend ensures axes go from - cropping_range to + cropping_range
+ax3.imshow(img_RoI)
+#ax3.set_axis_off()
+
+# Plot circles with correct center and sigma. 
+# Sigma is average of x and y, but also multiplied with 2 becaues its 1/e^2
+circle_j = plt.Circle((popt[1] , 
+                       popt[2] ), 
+                      (popt[3] + popt[4]) ,
+                      color = 'r', 
+                      fill = False, 
+                      linewidth = 1)
+ax3.add_patch(circle_j)
+
+# Plot crosses at center locations. Subtract cropping range to center (0,0)
+# Radius is set to an arbitrarily small number, only its location is important
+center_j = plt.Circle((popt[1] ,
+                       popt[2]),
+                      0.3,
+                      color = 'r',
+                      fill = True)
+ax3.add_patch(center_j)
+
+# We are interested in the quality of the fit: the R_squared. 
+
+
+def R_squared(pixels_mesh_x, pixels_mesh_y, cropping_range, image):
+    
+    # residuals = ydata - f(xdata, *popt) where popt are fit 
+    # We reshape the output of the 2D gaussian to a square array
+    residuals = img_RoI - two_D_gaussian((pixels_mesh_x, pixels_mesh_y), *popt).reshape(2 * cropping_range + 1, 2 * cropping_range + 1)
+    
+    # ss_res is the sum over all invididual residuals, square to keep positive numbers
+    ss_res = np.sum(residuals**2)
+    # Total sum of squares is the sum over (ydata-mean(ydata))^2
+    ss_tot = np.sum((img_RoI - np.mean(img_RoI))**2)
+    
+    # Definition of the R^2
+    r_squared=1- (ss_res/ ss_tot)
+    return r_squared
+
+r_squared = R_squared(pixels_mesh_x, pixels_mesh_y, cropping_range, img_RoI)
+
+# Print result
+print("R-squared is: " + str(r_squared))
+
+waist = 2 * sigma_r_pixels * 4.65 / magnification
+print("Waist is: " + str(waist))

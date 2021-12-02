@@ -24,9 +24,9 @@ from matplotlib import cm
 """"This windows contains the variables that need to be edited, rest of script
 does not have to be edited"""
 # Number of spots that we make, to check if spot detection worked
-number_spots_expected = 25
+number_spots_expected = 1
 # Location of .mat data file
-mat_file_location = 'files/5x5.mat'
+mat_file_location = 'files/1x1.mat'
 # Threshold on how sensitive spot detection is
 threshold = 0.2
 # How many pixels do we crop around the spot maxima locations
@@ -207,8 +207,12 @@ spot_raveled = max_Gauss_locations_list = [0] * amount_spots
 # Initialize plot o
 fig, axes = plt.subplots(amount_subplots, amount_subplots, figsize = (5, 6), sharex = True, sharey = True)
 fig.suptitle('Spots Cropped Around Maxima (pixels)')
+
 # To be able to sum over axes it needs to be raveled
-ax = axes.ravel()
+if number_spots_expected ==1:
+    ax = axes
+else: 
+    ax = axes.ravel()
 
 # Initilize empty list to fit all paramters in. Because it is appended each iteration, it
 # can start empty
@@ -244,6 +248,7 @@ for j in range(amount_spots):
     # Plot images around (0,0) instead of origin in upper left corner. 
     extent = [-cropping_range ,cropping_range ,
               -cropping_range, cropping_range]
+    
     # Extend ensures axes go from - cropping_range to + cropping_range
     ax[j].imshow(spots_cropped[j], extent = extent)
     # Title: index but starting from 1 instead of 0 so add 1
