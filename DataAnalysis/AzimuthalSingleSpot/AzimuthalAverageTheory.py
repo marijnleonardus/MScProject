@@ -29,7 +29,7 @@ from matplotlib import cm
 #%% Variables
 
 #magnification from newport objective 
-magnification = 71.14 
+magnification = 60
 
 # Camera pixel size
 pixel_microns = 4.65
