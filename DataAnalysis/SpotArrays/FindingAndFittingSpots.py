@@ -189,11 +189,10 @@ def two_D_gaussian(X, amplitude, x0, y0, sigma_x, sigma_y):
     # indepdent variables x,y are passed as a single variable X (curve_fit only 
     # accepts 1D fitting, therefore the result is raveled 
     x, y = X
-    x0 = float(x0)
-    yo = float(y0)    
+    
     exponent = -0.5 * (sigma_x)**(-2) * (x - x0)**2 - 0.5 * (sigma_y)**(-2) * (y - y0)**2
-    intensity = amplitude * np.exp(exponent)
-    return intensity.ravel()
+    function = amplitude * np.exp(exponent)
+    return function.ravel()
 
 # Initial values. The fitting algorithm needs an initial guess. Esimated from 
 # plot of the spot. 

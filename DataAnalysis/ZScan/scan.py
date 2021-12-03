@@ -25,7 +25,7 @@ import scipy.optimize
 #%% Variables
 
 # mat file location
-mat_files_location = "./data/0_1/"
+mat_files_location = "./data/0_1astigcorrection0_27spherical/"
 
 lam = 820e-9
 k = 2 * np.pi / lam
@@ -46,13 +46,15 @@ z_stop = 0
 step = 0.010585
 
 # plot range theory result
-plot_range = 5e-6
+plot_range = 7e-6
 dz = np.linspace(-plot_range, plot_range, 1000)
 
 # Only fit around waist, in microns
 fitting_range = 4
 
-#%% mathemetica result and PSF, theory results
+#%% Functions
+
+# Diffraction theory axial diffraction pattern 
 
 def intensity_defocus(u):
     
@@ -70,7 +72,7 @@ dz_microns = dz * 1e6
 intensity__defocus_normalized = intensity_defocus(dz_microns)
 
 
-#%% function spot detection
+# Spot detection
 
 def spot_detection(image):
     spots_LoG = blob_log(image,
@@ -94,20 +96,9 @@ def spot_detection(image):
     maximum_locs = np.array([maxima_x_coordinates, maxima_y_coordinates])
     return maximum_locs
 
-# assign dataset names
-filename_list = list(map(str, 
-                         np.arange(z_start, z_stop + z_steps_per_image, z_steps_per_image).tolist()
-                         ))
+# Loads file, crops to defined RoI
 
-# create empty list
-cam_frames = []
-rows = []
-longitudinal_profile = []
-
-#%% make 'sideview' image by sticking together individual camera images
-# append datasets into the list
-
-for i in range(len(filename_list)):
+def load_crop_RoI_normalize(mat_files_location, filename_list):
     mat_file = scipy.io.loadmat(mat_files_location + filename_list[i] + ".mat")
     
     # Select full camera frame uncropped
@@ -124,13 +115,52 @@ for i in range(len(filename_list)):
     cam_y_max = int(mat_file['cam_y_max'])
     
     # Cropping the array using the provided coordinates
-    cam_frame = np.transpose(full_frame[cam_x_min : cam_x_max , cam_y_min : cam_y_max])
+    cam_frame = np.transpose(full_frame[cam_x_min : cam_x_max , 
+                                        cam_y_min : cam_y_max])
     
-    # Store cropped frame in a list keeping all frames
+    return cam_frame
+
+# Fit Gaussian to obtain amplitudes
+
+fit_radial_coordinate = np.linspace(-2, 2, 100)
+
+def gaussian_1D(x_data, amplitude, center, sigma):
+
+    exponent = -0.5 * ((x_data - center) / sigma)**2
+    gaussian = amplitude * np.exp(exponent)
+    
+    return gaussian
+
+
+#%% Prepping and executing for loop that loops over scanned images
+
+# assign dataset names
+filename_list = list(map(str, 
+                         np.arange(z_start, z_stop + z_steps_per_image, z_steps_per_image).tolist()
+                         ))
+
+# Create empty lists to later store data from for loop in
+cam_frames = []
+rows = []
+longitudinal_profile = []
+fit_parameters_list = []
+
+# Fit guess: offset, amplitude, center, sigma
+guess = [170, row_cropping_range, 5]
+row_x_data = np.linspace(0, 2 * row_cropping_range, 2 * row_cropping_range)
+
+# Execute for loop
+# Each iteration, the results are saved in the empty matrices defined above
+
+for i in range(len(filename_list)):
+    
+    # Use RoI crop function defined above
+    cam_frame = load_crop_RoI_normalize(mat_files_location, filename_list)
     cam_frames.append(cam_frame)
     
     # Find maxima locations
     maximum_loc = spot_detection(cam_frame)
+    
     # Store the row, column where this maximum is
     max_row_index = int(maximum_loc[1])
     max_column_index = int(maximum_loc[0])
@@ -146,13 +176,28 @@ for i in range(len(filename_list)):
     # as a function of z direction
     rows.append(row_cropped)
     
+    # Fit each picture to obtain amplitude, this might be more accurate than simply
+    # Taking the maximum value
+    fit_parameters, fit_covariance = scipy.optimize.curve_fit(gaussian_1D,
+                                                             row_x_data,
+                                                             row_cropped,
+                                                             p0 = guess)
+    fit_parameters_list.append(fit_parameters)
+        
     # Save longitudal intensity
     longitudinal = np.max(cam_frame)
     longitudinal_profile.append(longitudinal)
+
+# Fitted amplitudes
+amplitudes_matrix = np.array(fit_parameters_list)[:, 0]
+amplitudes_matrix_normalized = amplitudes_matrix / np.max(amplitudes_matrix)
     
 
 # Convert list of rows to array (2D array: r,z)    
 array = np.transpose(np.array(rows))  
+
+# Normalize
+array = array / np.max(array)
 
 # Compute aspect ratio for plot
 
@@ -205,7 +250,8 @@ center_x_fit = popt[1]
 
 gaussian_fitted = gaussian(fit_x, *popt)
 
-#%% plotting
+#%% First and second plot: Slice of tweezer
+ 
 fig, (ax1 ,ax2) = plt.subplots(nrows = 2, 
                               ncols = 1, 
                               figsize = (3.5, 3.5*7/5),
@@ -244,11 +290,14 @@ ax1.set_ylabel(r'$r$ [$\mu$m]', usetex = True)
 
 ax2.grid()
 ax2.errorbar(x_longitudinal - center_x_fit, longitudinal_normalized, 
-            color = 'red',
+            color = 'black',
             fmt = 'o',
-            ms = 5,
-            yerr = 0.05 * longitudinal_normalized
+            ms = 3,
+            yerr = 0.1 * longitudinal_normalized
             )
+
+# Fitted amplitudes, so not max() from array
+ax2.scatter(x_longitudinal - center_x_fit, amplitudes_matrix_normalized)
 
 # Plots, ticks for second plot
 
@@ -263,10 +312,7 @@ for ax in fig.get_axes():
     ax.label_outer()
     
 ax2.plot(dz_microns, intensity__defocus_normalized)
-ax2.set_xlim(-4.3, 4.2)
-#ax2.set_xlim(-4, 4)
-#ax2.set_ylim(0.2, 1.05)
-#ax2.set_aspect(1.8)
+ax2.set_xlim(-4.2, 4.2)
 
 # Saving
 
@@ -274,6 +320,8 @@ plt.savefig('exports/AxialImageTweezerScan.pdf',
             dpi = 200,
             pad_inches = 0,
             bbox_inches = 'tight')
+
+#%% Second plot: fit plot
 
 """third plot. We plot separately because x range is different"""
 fig, ax = plt.subplots(figsize = (4,3))
@@ -292,7 +340,8 @@ ax.set_xlabel(r'$\delta z$ [$\mu$m]', usetex = True)
 ax.set_ylabel(r'$I/I_0$', usetex = True)
 ax.grid()
 
-#%% Saving and printing result
+# Saving
+
 plt.savefig('exports/FittedRayleigh.pdf',
             dpi = 200,
             pad_inches = 0,
