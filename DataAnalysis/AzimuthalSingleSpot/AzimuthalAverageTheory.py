@@ -29,13 +29,13 @@ from matplotlib import cm
 #%% Variables
 
 #magnification from newport objective 
-magnification = 60
+magnification = 67
 
 # Camera pixel size
 pixel_microns = 4.65
 
 # Crop for fit
-cropping_range = 10
+cropping_range = 5
 
 # Threshold for LoG detection
 threshold = 0.2
