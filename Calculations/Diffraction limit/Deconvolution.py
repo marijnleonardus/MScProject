@@ -33,7 +33,7 @@ sigma_sys = sigma(alpha_newport, n, wavenumber)
 
 # Find sigma_image from spot fitting script 
 
-sigma_image = 800 / 2
+sigma_image = 880 / 2
 
 # Calculate object sigma and waist
 

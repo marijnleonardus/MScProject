@@ -29,13 +29,13 @@ from matplotlib import cm
 #%% Variables
 
 #magnification from newport objective 
-magnification = 60
+magnification = 67
 
 # Camera pixel size
 pixel_microns = 4.65
 
 # Crop for fit
-cropping_range = 10
+cropping_range = 5
 
 # Threshold for LoG detection
 threshold = 0.2
@@ -247,46 +247,13 @@ def airy(f, k, radial_distance, R):
 
 airy_intensity = airy(focal_length, wavenumber, radial_distance, aperture_radius)
     
-#%% Measurement vs result diffraction theory
+#%% Measurement vs result diffraction theory and tweezer Imshow
 
-fig, ax = plt.subplots(1,1, figsize = (3.5, 2.5))
-ax.grid()
+fig, (ax1, ax2) = plt.subplots(nrows = 1,
+                               ncols = 2,
+                               figsize = (7.9, 2.5))
 
-# rescale x axis to show um instead of m
-radial_distance_microns = radial_distance * 1e6
-
-# Plot tweezer theory result
-
-ax.plot(radial_distance_microns,
-        tweezer_intensity,
-        label = r'$w_i \approx R$')
-
-# Plot measurement result
-
-ax.scatter(radial_distance_microns, measurement,
-           label = 'measurement', 
-           color = 'red', 
-           s = 7,
-           marker ='X'
-           )
-
-# Plot Airy theory result
-
-ax.plot(radial_distance_microns, airy_intensity, label = 'PSF')
-
-ax.set_xlabel(r'$r$ [$\mu$m]', usetex = True)
-ax.set_ylabel(r'$I/I_0$', usetex = True)
-ax.legend()
-ax.set_xlim(0, 2)
-
-plt.savefig('exports/AzimuthalAverage.pdf',
-            dpi = 200,
-            pad_inches = 0,
-            bbox_inches = 'tight')
-
-
-#%% Imshow plot of tweezer
-# Zoom the image further
+# Imshow plot
 
 def crop_center(img, cropx, cropy):
 
@@ -301,9 +268,8 @@ image_zoomed = crop_center(image_cropped, 80, 60)
 # Normalize
 image_zoomed = image_zoomed / np.max(image_zoomed)
 
-fig2, ax2 = plt.subplots(1, 1, figsize = (3.5, 2.5))
-zoomed_plot = ax2.imshow(image_zoomed)
-ax2.axis('off')
+zoomed_plot = ax1.imshow(image_zoomed)
+ax1.axis('off')
 
 # Scalebar
 
@@ -311,7 +277,7 @@ ax2.axis('off')
 scalebar_object_size = 1e-6 #micron
 scalebar_pixels = int(scalebar_object_size * magnification / pixel_microns * 1e6) # integer number pixels
 
-scale_bar = AnchoredSizeBar(ax2.transData,
+scale_bar = AnchoredSizeBar(ax1.transData,
                            scalebar_pixels, # pixels
                            r'1 $\mu$m', # real life distance of scale bar
                            'upper left', 
@@ -321,22 +287,58 @@ scale_bar = AnchoredSizeBar(ax2.transData,
                            size_vertical = 1
                            )
 
-ax2.add_artist(scale_bar)
+ax1.add_artist(scale_bar)
 
 # Colorbar
 
-divider = make_axes_locatable(ax2)
+divider = make_axes_locatable(ax1)
 cax = divider.append_axes("right",
                           size = "8%",
                           pad = 0.1)
-plt.colorbar(zoomed_plot, cax=cax)
+plt.colorbar(zoomed_plot, 
+             cax=cax)
 
 
-plt.savefig('exports/SingleSpotZoomed.pdf',
+ax2.grid()
+ax2.set_aspect(1.6)
+ax2.tick_params(direction = 'in')
+
+# rescale x axis to show um instead of m
+radial_distance_microns = radial_distance * 1e6
+
+# Plot tweezer theory result
+
+ax2.plot(radial_distance_microns,
+        tweezer_intensity,
+        label = r'$w_i \approx R$')
+
+# Plot measurement result
+
+yerr = 0.03 
+ax2.scatter(radial_distance_microns, measurement,
+           label = 'measurement', 
+           color = 'red', 
+           s = 7,
+           marker = 'X'
+           )
+
+# Plot Airy theory result
+
+ax2.plot(radial_distance_microns, airy_intensity, label = 'PSF')
+
+ax2.set_xlabel(r'$r$ [$\mu$m]', usetex = True)
+ax2.set_ylabel(r'$I/I_0$', usetex = True)
+ax2.legend()
+ax2.set_xlim(0, 2)
+
+
+plt.savefig('exports/AzimuthalAverageSpotZoomed.pdf',
             dpi = 200,
             pad_inches = 0,
-            bbox_inches = 'tight'
-            )
+            bbox_inches = 'tight')
+
+
+
 
 #%% 2D fit
 
