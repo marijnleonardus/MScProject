@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Aug 17 17:25:16 2021
-
 @author: Marijn Venderbosch
-
 Script for 1D edge detection to calibrate camera using distance between lines
 in resolution target. 
 """
@@ -25,7 +23,7 @@ from scipy.signal import find_peaks
 does not have to be edited"""
 
 # Location of .mat data file
-mat_file_location = 'files/45lines_2.mat'
+mat_file_location = 'files/day2.mat'
 # magnification from newport objective. This is uncalibrated. 
 
 
@@ -57,7 +55,7 @@ image_snip = load_and_save(mat_file_location)
 
 """Show the image around the region of interest"""
 # We only use the first 400 pixels becaues the camera is burnt around the middle
-image = image_snip[40:400, :]
+image = image_snip[510:1000, :]
 
 
 #%% Plotting
@@ -80,13 +78,13 @@ ax.grid(color = 'white')
 
 # Plot
 ax.imshow(image,
-          cmap = 'jet')
+          cmap = 'Greys_r')
+
+
 fig.savefig('exports/LineSpacingCalibration.pdf', 
             dpi = 200, 
             pad_inches = 0,
             bbox_inches = 'tight')
-
-
 
 #%% Edge detection
 
@@ -96,11 +94,12 @@ fig.savefig('exports/LineSpacingCalibration.pdf',
 
 # For better signal/noise ratio and because we only care about 1D, compute
 # histogram over all rows
-row = image[300, :]
+row = image[420, :]
+
 
 # Variables
-sigma = 4
-threshold = 4
+sigma = 3
+threshold = 2.5
 
 # Gaussian blur, edges cover about 9 pixels. Compute derivative
 blurred = gaussian_filter1d(row, 
@@ -113,5 +112,3 @@ edges, peak_heights = find_peaks(derivative,
                                  height = threshold)
 
 print("the edge locations are: " + str(edges))
-
-
