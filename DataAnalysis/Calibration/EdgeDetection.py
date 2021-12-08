@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Aug 17 17:25:16 2021
-
 @author: Marijn Venderbosch
-
 Script for 1D edge detection to calibrate camera using distance between lines
 in resolution target. 
 """
@@ -57,7 +55,7 @@ image_snip = load_and_save(mat_file_location)
 
 """Show the image around the region of interest"""
 # We only use the first 400 pixels becaues the camera is burnt around the middle
-image = image_snip[500:1000, :]
+image = image_snip[510:1000, :]
 
 
 #%% Plotting
@@ -81,6 +79,7 @@ ax.grid(color = 'white')
 # Plot
 ax.imshow(image,
           cmap = 'Greys_r')
+
 
 fig.savefig('exports/LineSpacingCalibration.pdf', 
             dpi = 200, 
@@ -113,4 +112,3 @@ edges, peak_heights = find_peaks(derivative,
                                  height = threshold)
 
 print("the edge locations are: " + str(edges))
-
