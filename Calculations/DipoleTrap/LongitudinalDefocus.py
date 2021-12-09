@@ -65,16 +65,15 @@ plt.plot(dz_microns, z_intensity,
          )
 
 plt.plot(dz_microns, PSF_intensity, 
-         label = 'Plane wave')
+         label = r'$w_i \gg R$'
+         )
 
 ax.set_xlabel(r'$\delta z$ [$\mu$m]', usetex = True)
 ax.set_ylabel(r'$I/I_0$', usetex = True)
+ax.tick_params(direction = 'in')
 ax.legend()
 
 
-
-
-#%% Saving
 plt.savefig('exports/LongitudinalTweezerField.pdf',
             dpi = 200, 
             pad_inches = 0, 
