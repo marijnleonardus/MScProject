@@ -106,12 +106,10 @@ ax1.plot(u, intensity_1D)
 ax1.set_ylabel(r'$I/I_0$', usetex = True)
 ax1.set_xlabel(r'$k r R/f$', usetex = True)
 
+# Ticks inside
 ax1.tick_params(direction = 'in')
-
-ax1.set_xlim(0,8.2)
-
-ax1.set_yticks(np.linspace(0.2, 1, 4))
-ax1.set_ylim(0,1.05)
+ax1.set_xlim(0, 8.2)
+ax1.set_ylim(0, 1.05)
 
 # Label
 ax1.text(0.85, 
