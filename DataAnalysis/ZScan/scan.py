@@ -145,6 +145,9 @@ rows = []
 longitudinal_profile = []
 fit_parameters_list = []
 
+# Fit parameter empty matrix
+fit_parameters = np.zeros([17, 3])
+
 # Fit guess: offset, amplitude, center, sigma
 guess = [170, row_cropping_range, 5]
 row_x_data = np.linspace(0, 2 * row_cropping_range, 2 * row_cropping_range)
@@ -188,9 +191,13 @@ for i in range(len(filename_list)):
     longitudinal = np.max(cam_frame)
     longitudinal_profile.append(longitudinal)
 
-# Fitted amplitudes
-amplitudes_matrix = np.array(fit_parameters_list)[:, 0]
+# Fitted values
+
+fit_matrix = np.array(fit_parameters_list)
+amplitudes_matrix = fit_matrix[:, 0]
 amplitudes_matrix_normalized = amplitudes_matrix / np.max(amplitudes_matrix)
+
+fit_centra = fit_matrix[:, 1]
     
 
 # Convert list of rows to array (2D array: r,z)    
@@ -289,15 +296,12 @@ ax1.set_ylabel(r'$r$ [$\mu$m]', usetex = True)
 # Plot against same horizontal coordinate
 
 ax2.grid()
-ax2.errorbar(x_longitudinal - center_x_fit, longitudinal_normalized, 
+ax2.errorbar(x_longitudinal - center_x_fit, amplitudes_matrix_normalized, 
             color = 'black',
             fmt = 'o',
             ms = 3,
-            yerr = 0.1 * longitudinal_normalized
+            yerr = 0.1 * amplitudes_matrix_normalized
             )
-
-# Fitted amplitudes, so not max() from array
-ax2.scatter(x_longitudinal - center_x_fit, amplitudes_matrix_normalized)
 
 # Plots, ticks for second plot
 

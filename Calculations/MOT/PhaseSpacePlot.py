@@ -135,7 +135,7 @@ plt.imshow(2 * eqn.profile['Fz'].F[2],
            extent = (np.amin(z)-dz/2, np.amax(z)-dz/2,
                    np.amin(v)-dv/2, np.amax(v)-dv/2),
            aspect = 'auto',
-           cmap = 'RdYlBu')
+           cmap = 'bwr')
 
 # Colorbar
 
@@ -157,7 +157,7 @@ for sol in sols:
 ax.set_xlim((-10, 10))
 ax.set_ylim((-12, 12))
 
-plt.savefig('PhaseSpace.pdf',
+plt.savefig('exports/PhaseSpace.pdf',
             dpi = 200, 
             pad_inches = 0,
             bbox_inches = 'tight')
