@@ -24,7 +24,7 @@ e = const.elementary_charge # A s
 k_b = const.Boltzmann #J/K
 
 # variables
-waist0_7 = 0.7e-6
+waist0_7 = 0.76e-6
 T = 1e-3 #K
 transition_wl = 780e-9
 laser_wl = 820e-9
