@@ -82,7 +82,7 @@ def rabiFromEDM(edm,intensity):
 def potentialDepthHz(polarizability,intensity):
     return 0.5*polarizability*intensity
 def potentialDepthK(polarizability,intensity): # full depth / 1.5 kT
-    return (2/3)*potentialDepthHz(polarizability,intensity)*fc.Planck/fc.Boltzmann
+    return potentialDepthHz(polarizability,intensity)*fc.Planck/fc.Boltzmann
 def potentialDepthHzFORT(rabi,wavelengthTransition,wavelengthTrap):
     # arxiv.org/pdf/physics/9902072.pdf Eq (10) w.o counter-rotating term
     detuning = angularFrequency(wavelengthTransition)-angularFrequency(wavelengthTrap)
@@ -101,10 +101,6 @@ def heatingRateK(scatRate,wavelength):
 
 def trappingFrequency(potDepthHz,sigma):
     return math.sqrt(fc.Planck*potDepthHz/(m88*sigma**2))
-
-def trappingFrequency(potentialDepthK, sigma):
-    return math.sqrt(fc.Boltzmann * potentialDepthK / (m88 * sigma**2))
-    
 def oscillatorLength(trappingF):
     return math.sqrt(fc.hbar/(trappingF*m88))
 
@@ -122,7 +118,7 @@ trans780 = {'comment':'rubidium', 'wavelength':780*nm,'polarizability':alphaDyn,
             'gamma': 5.8*MHz}
 
 sigma = .5*mum # think this should really be 1/4 mum
-pwr = 5*mW
+pwr = 3.5*mW
 intens = laserIntensityFromPower(pwr,sigma)
 depthHz = potentialDepthHz(trans780['polarizability'],intens)
 depthK = potentialDepthK(trans780['polarizability'],intens)
