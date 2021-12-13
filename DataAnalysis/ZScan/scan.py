@@ -25,7 +25,7 @@ import scipy.optimize
 #%% Variables
 
 # mat file location
-mat_files_location = "./data/0_1astigcorrection0_27spherical/"
+mat_files_location = "./data/uncorrected/"
 
 lam = 820e-9
 k = 2 * np.pi / lam
@@ -41,7 +41,7 @@ row_cropping_range = 35
 
 # z scan names of .mat files to import
 z_steps_per_image = 50
-z_start = -800
+z_start = -1200
 z_stop = 0
 step = 0.010585
 
@@ -320,7 +320,7 @@ ax2.set_xlim(-4.2, 4.2)
 
 # Saving
 
-plt.savefig('exports/AxialImageTweezerScan.pdf',
+plt.savefig('exports/AxialImageTweezerScanUncorrected.pdf',
             dpi = 200,
             pad_inches = 0,
             bbox_inches = 'tight')

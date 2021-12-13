@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 # lut_820 = lut_813_mV * 5 / 2**(12)
 
 # Own diffractive lut calibration file
-df_820 = pd.read_csv('lut files/lut820_diffractivecalibration.lut',
+df_820 = pd.read_csv('files/lut820_diffractivecalibration.lut',
                      delimiter = ' ',
                      header = None)
 lut_820_mV = np.array(df_820)
@@ -31,7 +31,7 @@ lut_820_mV = np.array(df_820)
 lut_820 = lut_820_mV[:,1] * 5 / 2**(12)
 
 # Raw data of calibration, power in first order measurement
-df_raw_data = pd.read_csv('raw calibration data/Raw0.csv',
+df_raw_data = pd.read_csv('files/Raw0.csv',
                           delimiter = ',',
                           header = None)
 raw_array = np.array(df_raw_data)
@@ -49,6 +49,7 @@ ax.set_xlabel('grey level 0-255')
 ax.set_ylabel('voltage response [V]',
               color = 'navy')
 ax.set_ylim(-0.2, 5.2)
+ax.tick_params(direction = 'in')
 
 # raw data. Use same x axis, other y
 ax2 = ax.twinx()
@@ -65,4 +66,4 @@ labels = [l.get_label() for l in lines]
 plt.legend(lines, labels, loc = 'upper left')
 
 #%% saving
-plt.savefig('LUTplot.pdf', dpi = 300, bbox_inches = 'tight')
+plt.savefig('exports/LUTplot.pdf', dpi = 300, bbox_inches = 'tight')
