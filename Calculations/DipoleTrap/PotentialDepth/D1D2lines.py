@@ -9,14 +9,18 @@ Computes trap depth from eq. 1.6 PhD thesis Ludovic Brossard
 
 #%% Imports
 
-from scipy.constants import Boltzmann, c, pi, hbar, Planck
+from scipy.constants import Boltzmann, c, pi, hbar, Planck, atomic_mass
+import numpy as np
 
 #%% Variables
 
+mRb = 87 * atomic_mass
+
 # Dipole trap
-power = 3.5e-3 #mW
-waist = 1e-6 # m
-wavelength = 850e-9 # m
+power = 1e-3 #mW
+waist = 0.8e-6 # m
+rayleigh = 3.6e-6 #m
+wavelength = 820e-9 # m
 
 # D1 Rubidium
 linewidth_D1 = 2 * pi * 5.7e6 # 1/s
@@ -50,6 +54,12 @@ def dipole_potential(detuning_D1,
     
     return hbar / 8 * (D1_contribution + D2_contribution) * intensity(power, waist)
 
+def trap_frequency_radial(waist, mass, potential):
+    return np.sqrt(-4 * potential / (mass * waist**2))
+
+def trap_frequency_axial(waist, mass, potential):
+    return np.sqrt(-2 * potential / (mass * rayleigh**2))
+
 #%% Executing functions and print result
 
 detuning_D1 = detuning(wavelength, transition_wavelength_D1)
@@ -68,6 +78,18 @@ print("Trap depth is: " + str(potential_depth_mK) + " mK")
 
 potential_depth_MHz = round(-dipole_potential / Planck * 1e-6, 1)
 print("Trap depth (Hz) is: " + str(potential_depth_MHz) + "MHz")
+
+radial_trap_frequency = trap_frequency_radial(waist, mRb, dipole_potential)
+radial_trap_frequency_kHz = round(radial_trap_frequency * 1e-3 / (2 * np.pi))
+
+axial_trap_frequency = trap_frequency_axial(waist, mRb, dipole_potential)
+axial_trap_frequency_kHz = round(axial_trap_frequency * 1e-3 / (2 * np.pi))
+print("Raxial, axial trap frequency are: " +
+      str(radial_trap_frequency_kHz) + 
+      ", and " +
+      str(axial_trap_frequency_kHz) + 
+      " (kHz * 2pi)")
+
 
 
     
