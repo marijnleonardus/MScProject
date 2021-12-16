@@ -83,12 +83,13 @@ def potentialDepthHz(polarizability,intensity):
     return 0.5*polarizability*intensity
 def potentialDepthK(polarizability,intensity): # full depth / 1.5 kT
     return potentialDepthHz(polarizability,intensity)*fc.Planck/fc.Boltzmann
+
 def potentialDepthHzFORT(rabi,wavelengthTransition,wavelengthTrap):
     # arxiv.org/pdf/physics/9902072.pdf Eq (10) w.o counter-rotating term
     detuning = angularFrequency(wavelengthTransition)-angularFrequency(wavelengthTrap)
     return rabi**2/(4*detuning)/Hz
 def potentialDepthKfromHz(depthHz): # full depth / 1.5 kT
-    return (2/3)*depthHz*fc.Planck/fc.Boltzmann
+    return depthHz*fc.Planck/fc.Boltzmann
 
 def scatteringRate(wavelength,intensity,transition):
     delta = angularFrequency(wavelength)-angularFrequency(transition['wavelength'])
