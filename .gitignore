@@ -131,16 +131,38 @@ dmypy.json
 # exports
 .pdf
 *.pdf
+
 *.png
 .png
 
 # data files typically images
+
+*.dat
+.dat
+
 .bmp
 *.bmp
+
 .jpg
 *.jpg
+
 .mat
 *.mat
+
+.tif
+*.tif
+
 *.pdf
-Calculations/MOT/exports/MOTplot.pdf
+.pdf
+
+.npy
 *.npy
+
+# setings
+.ini
+*.ini
+
+.sifx
+*.sifx
+.sif
+*.sif
