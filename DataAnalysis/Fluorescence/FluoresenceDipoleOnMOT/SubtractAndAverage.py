@@ -8,22 +8,21 @@ Script takes as input a dataset of the type "Spooled files_000x.tif", images
 from the Andor camera, assumes every odd number for x is a shot with the tweezer off
 (just MOT), while every even number is with tweezer on as well. 
 
-Subtracts MOT from tweezer + MOT and averages over multiple attemps
 """
 
 #%% Imports
 
 import numpy as np
 from PIL import Image
-import cv2 
 import matplotlib.pyplot as plt
 
 #%% Loading Data
 
 # Data location and define empty lists
 
-data_location = "data/MOTandDipoleOn/10ms/"
-file_prefix = "Spooled files_"
+data_location = "data/"
+delay_time = "6ms"
+file_prefix = "/Spooled files_"
 
 # File numbers, step is 2 because only odd/even iterations. Stop_number is the
 # amount of pixel fixels you made 
@@ -39,6 +38,7 @@ def load_image_list(start, stop, step, data_location, file_prefix):
     # Load files
     for i in range(start, stop, step):
         im = Image.open(data_location +
+                        delay_time +
                         file_prefix +
                         str(i).zfill(4) +
                         ".tif")
@@ -59,7 +59,6 @@ odd_list =  load_image_list(start_number + 1,
                             step_number,
                             data_location,
                             file_prefix)
-
     
 #%% Subtract background, average
 
@@ -72,7 +71,7 @@ def subtract_arrays(even_list, odd_list):
         even_array = np.array(even_list[i])
         odd_array = np.array(odd_list[i])
         
-        difference = cv2.absdiff(even_array, odd_array)
+        difference = odd_array - np.minimum(odd_array, even_array)
         difference_list.append(difference)
     return difference_list
 
@@ -87,8 +86,8 @@ def average_list(input_list):
         array = input_list[i]
         sum_array += array
         
-        # Normalize
-        sum_array = sum_array / len(input_list)
+    # Normalize
+    sum_array = sum_array / len(input_list)
     return sum_array
 
 average_shot = average_list(difference_list)
@@ -96,4 +95,5 @@ average_shot = average_list(difference_list)
 #%% Plot result
 
 plt.imshow(average_shot)
-plt.savefig("exports/7ms.png", dpi = 500)
+plt.savefig("exports/" + str(delay_time) +".png",
+            dpi = 500)
