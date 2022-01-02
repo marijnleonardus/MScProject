@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Created on Sun Jan  2 21:12:56 2022
 
@@ -37,10 +39,15 @@ phi = np.pi * d * (1 - nr) / wavelength * (3 * rho**4 * NA**4 / 4 * (1 - nr**2)*
 # Divide by 2 pi to get amount of phase shifts
 waves = phi / (2 * np.pi)
 
-#%% plotting
+#%% plotting, saving
 
-fig, ax = plt.subplots(figsize = (4,3))
+fig, ax = plt.subplots(figsize = (3, 2))
 ax.plot(rho, waves)
 
 ax.set_xlabel(r'$r/R$', usetex = True)
 ax.set_ylabel(r'$\phi(r)/2\pi$', usetex = True)
+
+plt.savefig('SphericalAberrationTerm.pdf',
+            pad_inches = 0,
+            bbox_inches = 'tight',
+            dpi = 300)
