@@ -25,9 +25,9 @@ import scipy.optimize
 #%% Variables
 
 # mat file location
-mat_files_location = "./data/uncorrected/"
+mat_files_location = "./data/0_1astigcorrection0_27spherical/"
 
-lam = 820e-9
+lam = 810e-9
 k = 2 * np.pi / lam
 f = 4e-3
 R = 2e-3
@@ -41,7 +41,7 @@ row_cropping_range = 35
 
 # z scan names of .mat files to import
 z_steps_per_image = 50
-z_start = -1200
+z_start = -800
 z_stop = 0
 step = 0.010585
 
@@ -307,7 +307,7 @@ ax2.errorbar(x_longitudinal - center_x_fit, amplitudes_matrix_normalized,
 
 ax2.xaxis.set_major_locator(plt.MultipleLocator(1))
 ax2.xaxis.set_minor_locator(AutoMinorLocator(2))
-ax2.set_xlabel(r'$z$ [$\mu$m]', usetex = True)
+ax2.set_xlabel(r'$\delta z$ [$\mu$m]', usetex = True)
 ax2.set_ylabel(r'$I/I_0$', usetex = True)
 
 # only labels on bottom plot
@@ -320,7 +320,7 @@ ax2.set_xlim(-4.2, 4.2)
 
 # Saving
 
-plt.savefig('exports/AxialImageTweezerScanUncorrected.pdf',
+plt.savefig('exports/AxialImageTweezerScan.pdf',
             dpi = 200,
             pad_inches = 0,
             bbox_inches = 'tight')

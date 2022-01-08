@@ -22,12 +22,13 @@ import matplotlib.pyplot as plt
 
 # Data location and define empty lists
 
-data_location = "data/MOTandDipoleOn/10ms/"
-file_prefix = "Spooled files_"
+data_location = "U:/KAT1/Images/dipole/MOToffDetuningSweep/"
+file_name = "15ms_121mhz"
+file_prefix = "/Spooled files_"
 
 # File numbers, step is 2 because only odd/even iterations. Stop_number is the
 # amount of pixel fixels you made 
-start_number = 0
+start_number = 4
 stop_number = 40
 step_number = 2  
 
@@ -39,6 +40,7 @@ def load_image_list(start, stop, step, data_location, file_prefix):
     # Load files
     for i in range(start, stop, step):
         im = Image.open(data_location +
+                        file_name + 
                         file_prefix +
                         str(i).zfill(4) +
                         ".tif")
@@ -96,4 +98,5 @@ average_shot = average_list(difference_list)
 #%% Plot result
 
 plt.imshow(average_shot)
-plt.savefig("exports/7ms.png", dpi = 500)
+plt.savefig("exports/" + file_name + ".png",
+            dpi = 500)
