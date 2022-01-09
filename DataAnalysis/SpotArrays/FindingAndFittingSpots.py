@@ -20,19 +20,22 @@ from scipy import optimize
 from scipy.stats import norm
 from mpl_toolkits import mplot3d
 from matplotlib import cm
+from matplotlib.ticker import (MultipleLocator, FormatStrFormatter,
+                               AutoMinorLocator)
 
 #%% Variables
 
 # Number of spots that we make, to check if spot detection worked
-number_spots_expected = 1
+number_spots_expected = 49
 # Location of .mat data file
-mat_file_location = 'files/10 4 adjusted spacing/1x1.mat'
+mat_file_location = 'files/10 4 adjusted spacing/7x7.mat'
 # Threshold on how sensitive spot detection is
 threshold = 0.2
 # How many pixels do we crop around the spot maxima locations
-cropping_range = 14
+cropping_range = 5
 # magnification from newport objective. This is uncalibrated. 
-magnification = 71.14
+magnification = 67
+pixel_size_microns = 4.65
 
 #%% Load .mat 
 
@@ -55,7 +58,8 @@ def load_and_save(mat_file):
     cam_y_max = int(mat_file['cam_y_max'])
     
     # Cropping the array using the provided coordinates
-    cam_frame_cropped = cam_frame[cam_x_min : cam_x_max , cam_y_min : cam_y_max]
+    #cam_frame_cropped = cam_frame[cam_x_min : cam_x_max , cam_y_min : cam_y_max]
+    cam_frame_cropped = cam_frame[200 : 800, 50 : 650]
     
     # Save cropped frame as numpy array
     np.save('files/cam_frame_array_cropped', cam_frame_cropped)
@@ -64,10 +68,7 @@ def load_and_save(mat_file):
 load_and_save(mat_file_location)
 
 
-
-#%% Spot detection
-
-"""The following part will detect maxima using the Laplacian of Gaussian algorithm"""
+#%% Spot detection using LoG algorithm
 
 # Load image from script 'loadmatSaveCamFrame.py'. 
 # Image is cropped to region of interest
@@ -83,11 +84,18 @@ def plot_camera(img):
     # normalize
     img_normalized = img / np.max(img)
     
-    ax.imshow(img_normalized, cmap = 'gray')
-    ax.set_xlabel('x [pixels]')
-    ax.set_ylabel('y [pixels]')
+    ax.imshow(img_normalized, 
+              cmap = 'gray'
+              )
     
-    plt.savefig('exports/camera_image.png', dpi = 300)
+    ax.set_xlabel(r'$x$ [pixels]')
+    ax.set_ylabel(r'$y$ [pixels]')
+    
+    plt.savefig('exports/camera_image.pdf', 
+                pad_inches = 0,
+                dpi = 300,
+                bbox_inches = 'tight'
+                )
     
 plot_camera(image)
 
@@ -113,7 +121,7 @@ spots_LoG[:, 2] = spots_LoG[:, 2] * np.sqrt(2)
 maxima_y_coordinates = spots_LoG[:, 0]
 maxima_x_coordinates = spots_LoG[:, 1]
 # Increase sizes crosses for better visibility
-factor = 5
+factor = 6
 sizes = spots_LoG[:, 2] * factor
 
 # Initialize plot
@@ -121,14 +129,25 @@ fig, axes = plt.subplots(1, 1, figsize=(5, 4))
 
 # Plot original image and overlay with crosses on spots where blobs are detected
 # Radii or cicles are from the gaussian kernels that detected them
-axes.set_title('Laplacian of Gaussian Spots')
-axes.set_xlabel('Pixels')
-axes.set_ylabel('Pixels')
-axes.imshow(image)
-axes.scatter(maxima_x_coordinates , maxima_y_coordinates, marker = 'x', s = sizes, color = 'r', linewidth = 1)
+axes.set_xlabel(r'$x$ [pixels]')
+axes.set_ylabel(r'$y$ [pixels]')
+
+axes.imshow(image,
+            cmap = 'gray')
+
+axes.scatter(maxima_x_coordinates , maxima_y_coordinates,
+             marker = 'x',
+             s = sizes, 
+             color = 'r', 
+             linewidth = 1.2
+             )
 
 # Saving and showing
-plt.savefig('exports/SpotsFoundUsingLoG.png', dpi = 500, tight_layout = True)
+plt.savefig('exports/SpotsFoundUsingLoG.pdf', 
+            pad_inches = 0,
+            dpi = 300,
+            bbox_inches = 'tight'
+            )
 
 #%% Crop spots and fit gaussians
 
@@ -294,55 +313,56 @@ mu_r_squared, stddev_r_squared = norm.fit(r_squared_matrix)
 print("Average r^2 is: " + str(mu_r_squared))
 
 # Saving and showing    
-plt.savefig('exports/SpotsCropped_range10.png', dpi = 500)
-
-#%% 3D G(x,y) fit of only one spot
-
-# Initialize figure
-fig =plt.figure(figsize = (5, 4))
-ax = plt.axes(projection='3d')
-
-# Plot data from camera as dots
-ax.scatter3D(x,y,spots_cropped[0],
-             color = 'black',
-             s = 1,
-             label = 'Data points'
-             )
-
-# Plot gaussian fit 
-first_peak_parameters = fit_parameters[0]
-first_peak = two_D_gaussian((x,y),*first_peak_parameters).reshape(2*cropping_range+1,2*cropping_range+1)
-im = ax.plot_surface(x,y,first_peak,
-                rstride = 1,
-                cstride = 1,
-                alpha = 0.5,
-                cmap = cm.jet,
-                label = '2D Gaussian fit'
-                )
-
-ax.invert_xaxis()
-ax.tick_params(axis='x', which='major', pad=-2)
-ax.tick_params(axis='y', which='major', pad=-2)
-#ax.invert_yaxis()
-
-ax.set_xlabel(r'$x$ [pixels]',
-              labelpad = -2,
-              usetex = True)
-
-ax.set_ylabel(r'$y$ [pixels]', 
-              labelpad = -2,
-              usetex = True)
-
-ax.set_zlabel(r'$G(x,y)/G_0$', 
-              labelpad = -1,
-              usetex = True)
-
-ax.view_init(20, 35)
-
-plt.savefig('exports/3DSpotFitGaussian.pdf', 
-            dpi = 200, 
+plt.savefig('exports/SpotsCropped_range10.png', 
             pad_inches = 0,
-            bbox_inches = 'tight')
+            dpi = 500)
+
+# #%% 3D G(x,y) fit of only one spot
+
+# # Initialize figure
+# fig =plt.figure(figsize = (5, 4))
+# ax = plt.axes(projection='3d')
+
+# # Plot data from camera as dots
+# ax.scatter3D(x,y,spots_cropped[0],
+#              color = 'black',
+#              s = 1,
+#              label = 'Data points'
+#              )
+
+# # Plot gaussian fit 
+# first_peak_parameters = fit_parameters[0]
+# first_peak = two_D_gaussian((x,y),*first_peak_parameters).reshape(2*cropping_range+1,2*cropping_range+1)
+# im = ax.plot_surface(x,y,first_peak,
+#                 rstride = 1,
+#                 cstride = 1,
+#                 alpha = 0.5,
+#                 cmap = cm.jet,
+#                 label = '2D Gaussian fit'
+#                 )
+
+# ax.invert_xaxis()
+# ax.tick_params(axis='x', which='major', pad=-2)
+# ax.tick_params(axis='y', which='major', pad=-2)
+# #ax.invert_yaxis()
+
+# ax.set_xlabel(r'$x$ [pixels]',
+#               labelpad = -2,
+#               usetex = True)
+
+# ax.set_ylabel(r'$y$ [pixels]', 
+#               labelpad = -2,
+#               usetex = True)
+
+# ax.set_zlabel(r'$G(x,y)/G_0$', 
+#               labelpad = -1,
+#               usetex = True)
+
+# ax.view_init(20, 35)
+
+# plt.savefig('exports/3DSpotFitGaussian.pdf', 
+#             dpi = 200, 
+#             pad_inches = 0)
 
 # We want to store the exact spot locations in (pixels_x, pixels_y), but sub-pixel from fits
 def store_max_peaks_subpixel(list_input):
@@ -360,8 +380,8 @@ def store_max_peaks_subpixel(list_input):
 # Call function and store result in variable
 max_Gauss_locations_subpixels = store_max_peaks_subpixel(max_Gauss_locations_list)
 
-#%% Spacing calculation
-"""The following part computes the spacing of the spots in x and y"""
+#%% Spacing calculation: calculate spacing in x and y
+
 # Dimension: array is d x d where d is dimension
 dimension = int(np.sqrt(amount_spots))
 
@@ -383,15 +403,15 @@ def spacing_calculator(locs):
     # So we decrease the stepper by the dimension size
     for k in range(amount_spots - dimension):
         y_spacing[k] = np.sqrt((locs[k + 3, 0] - locs[k, 0])**2 + (locs[k + 3, 1] - locs[k, 1])**2)
+        
+    # convert magnification to physical size
+    x_spacing_microns = x_spacing * pixel_size_microns  / magnification
+    y_spacing_microns = y_spacing * pixel_size_microns / magnification
     
-    return x_spacing, y_spacing
+    return x_spacing_microns, y_spacing_microns
         
 # Call function. Save result in arrays x_spacing and y_spacing respectively 
-x_spacing, y_spacing = spacing_calculator(max_Gauss_locations_subpixels)
-
-# Convert from pixels to microns taking into account magnification
-x_spacing_microns = x_spacing * 4.65 / magnification
-y_spacing_microns = y_spacing * 4.65 / magnification
+x_spacing_microns, y_spacing_microns = spacing_calculator(max_Gauss_locations_subpixels)
 
 # Calculate average and spread in spacings
 mu_x_spacing_microns, stddev_x_spacing_microns = norm.fit(x_spacing_microns)
@@ -409,7 +429,7 @@ beam_width_pixels = 2 * sigma_matrix
 
 # pixels are 4.65 micron. Magnification onto camera is 60X
 # 2*sigma corresponds to the 1/e^2 radius
-beamwidth_microns = beam_width_pixels * 4.65 / magnification
+beamwidth_microns = beam_width_pixels * pixel_size_microns / magnification
 
 # Obtain average and spreads in beamwidth and trapdepth by fitting data with a Gaussian
 mu_beam_width, stddev_beam_width = norm.fit(beamwidth_microns)
@@ -422,14 +442,30 @@ mu_trap_depth_unity = mu_trap_depth / mu_trap_depth
 stddev_trap_depth_unity = stddev_trap_depth / mu_trap_depth
 
 # Histogram plots
+
 # Number of bins: increase for more spots. Takes square root of number of spots and
 # rounds to nearest integer.
 n_bins = int(np.sqrt(amount_spots))
-fig, (ax1, ax2) = plt.subplots(1, 2, tight_layout = True)
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize = (7.5, 4))
+
 
 # Plot histograms: normalized using 'density' option
-ax1.hist(beamwidth_microns, bins = n_bins, hatch = '/', density = True)
-ax2.hist(trapdepth_matrix_unity, bins = n_bins, hatch = '/', density = True)
+ax1.hist(beamwidth_microns, 
+         bins = 9, 
+         #hatch = '/', 
+         alpha = 0.7,
+         density = True,
+         edgecolor = 'black',
+         label = 'histogram'
+         )
+
+ax2.hist(trapdepth_matrix_unity, 
+         bins = n_bins,
+         #hatch = '/',
+         alpha = 0.7,
+         edgecolor = 'black',
+         density = True
+         )
 
 # Get same limits for Gausian as plot range
 xmin_beamwidth, xmax_beamwidth = ax1.get_xlim()
@@ -453,26 +489,59 @@ print("1/e^2 radius is: "+ str(beamwidth_final))
 
 trapdepth_final = "%0.*f"%(2 , mu_trap_depth_unity)
 trapdepth_spread = "%0.*f"%(2 , stddev_trap_depth_unity)
+
 # Print relative error, multiply times 100 for percentage
 trapdepth_spread_relative = "%0.*f"%(1, 100* stddev_trap_depth_unity / mu_trap_depth_unity)
 print("Trap depth relative error is: "+ str(trapdepth_spread_relative)+"%")
 
 # Plot the normal distributions. 
-ax1.plot(x_beamwidth, normal_distribution_beamwidth, 'r--', linewidth = 2, color = 'r')
-ax2.plot(x_trapdepth, normal_distribution_trapdepth, 'r--', linewidth = 2, color = 'r')
+ax1.plot(x_beamwidth, normal_distribution_beamwidth,
+         'r--',
+         linewidth = 2,
+         alpha = 0.8,
+         label = 'normal distribution'
+         )
 
-# Edit labels, titles
-ax1.set_xlabel(r'$1/e^2$ radius [$\mu$m]')
+ax2.plot(x_trapdepth, normal_distribution_trapdepth, 
+         'r--',
+         alpha = 0.8,
+         linewidth = 2)
+
+# Edit labels
+ax1.set_xlabel(r'$w_0$ $(1/e^2$ radius) [$\mu$m]', usetex = True)
 ax1.set_yticklabels([])
-ax1.set_ylabel('Normalized counts [a.u.]')
-ax1.set_title(r'$w =$ (' + str(beamwidth_final) + r'$\pm$' + str(beamwidth_final_spread) + r') $\mu$m')
+ax1.xaxis.set_major_locator(MultipleLocator(0.05))
+ax1.xaxis.set_minor_locator(MultipleLocator(0.01))
+ax1.yaxis.set_major_locator(MultipleLocator(1.69))
+ax1.set_ylabel('Counts [a.u.]')
 
-ax2.set_xlabel('Normalized Trap Depth [a.u.]')
+ax2.set_xlabel(r'$U_0/\left\langle U_0 \right\rangle$', usetex = True)
 ax2.set_yticklabels([])
-ax2.set_title(r'$U_0 =$ (' + str(trapdepth_final) + r'$\pm$' + str(trapdepth_spread) + r') [a.u.]')
+ax2.xaxis.set_major_locator(MultipleLocator(0.1))
+ax2.xaxis.set_minor_locator(MultipleLocator(0.05))
+ax2.yaxis.set_major_locator(MultipleLocator(0.5))
+
+# Annotate
+ax1.text(0.905,
+         13,
+         r'$(0.89\pm0.03)$ $\mu$m',
+         fontsize = 12,
+         color = 'r'
+         )
+ax2.text(1.055,
+         13 *.5/1.69,
+         r'$(1.00\pm0.10)$',
+         fontsize = 12,
+         color = 'r'
+         )
+
+fig.legend(loc='upper left', bbox_to_anchor=(0.115, 1.03))
 
 # Save plot
-plt.savefig('exports/FittedHistograms.png', dpi = 500, tight_layout = True)
+plt.savefig('exports/FittedHistograms.pdf', 
+            dpi = 300,
+            pad_inches = 0,
+            bbox_inches = 'tight')
 
 # Show all plots
 plt.show()
