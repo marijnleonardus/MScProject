@@ -10,7 +10,8 @@ This script
     - Spots histograms of beam widths and trap depths 
 """
 
-#%% Libraries used
+#%% Imports
+
 import numpy as np
 import scipy.io
 from skimage.feature import blob_log
@@ -21,12 +22,11 @@ from mpl_toolkits import mplot3d
 from matplotlib import cm
 
 #%% Variables
-""""This windows contains the variables that need to be edited, rest of script
-does not have to be edited"""
+
 # Number of spots that we make, to check if spot detection worked
 number_spots_expected = 1
 # Location of .mat data file
-mat_file_location = 'files/1x1.mat'
+mat_file_location = 'files/10 4 adjusted spacing/1x1.mat'
 # Threshold on how sensitive spot detection is
 threshold = 0.2
 # How many pixels do we crop around the spot maxima locations
@@ -35,6 +35,7 @@ cropping_range = 14
 magnification = 71.14
 
 #%% Load .mat 
+
 """" The following function will take the .mat file and export a grayscale numpy array
 with similar dimensions as the accompanying screenshot"""
 def load_and_save(mat_file):
@@ -65,6 +66,7 @@ load_and_save(mat_file_location)
 
 
 #%% Spot detection
+
 """The following part will detect maxima using the Laplacian of Gaussian algorithm"""
 
 # Load image from script 'loadmatSaveCamFrame.py'. 
@@ -129,6 +131,7 @@ axes.scatter(maxima_x_coordinates , maxima_y_coordinates, marker = 'x', s = size
 plt.savefig('exports/SpotsFoundUsingLoG.png', dpi = 500, tight_layout = True)
 
 #%% Crop spots and fit gaussians
+
 """This script crops the spots around the locatins found by the LoG algorithm. 
 Subsequently it fits 2D gaussians around the spot locations and plots them
 """
@@ -293,8 +296,8 @@ print("Average r^2 is: " + str(mu_r_squared))
 # Saving and showing    
 plt.savefig('exports/SpotsCropped_range10.png', dpi = 500)
 
-#%% 3d plot to see how it went
-"""We want to export one 3d image of the fit of G(x,y) to see how it went"""
+#%% 3D G(x,y) fit of only one spot
+
 # Initialize figure
 fig =plt.figure(figsize = (5, 4))
 ax = plt.axes(projection='3d')

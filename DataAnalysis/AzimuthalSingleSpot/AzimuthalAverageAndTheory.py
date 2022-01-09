@@ -35,7 +35,7 @@ magnification = 67
 pixel_microns = 4.65
 
 # Crop for fit
-cropping_range = 5
+cropping_range = 4
 
 # Threshold for LoG detection
 threshold = 0.2
@@ -44,8 +44,8 @@ threshold = 0.2
 number_spots_expected = 1
 
 # mat file
-location = 'images/'
-file_name = '1x1.mat'
+location = 'data/'
+file_name = 'bestone.mat'
 
 # Parameters for theoretical plot
 waist = 2e-3
@@ -313,7 +313,6 @@ ax2.plot(radial_distance_microns,
         label = r'$w_i \approx R$')
 
 # Plot measurement result
-
 yerr = 0.03 
 ax2.scatter(radial_distance_microns, measurement,
            label = 'measurement', 
@@ -323,9 +322,7 @@ ax2.scatter(radial_distance_microns, measurement,
            )
 
 # Plot Airy theory result
-
 ax2.plot(radial_distance_microns, airy_intensity, label = 'PSF')
-
 ax2.set_xlabel(r'$r$ [$\mu$m]', usetex = True)
 ax2.set_ylabel(r'$I/I_0$', usetex = True)
 ax2.legend()
@@ -343,7 +340,6 @@ plt.savefig('exports/AzimuthalAverageSpotZoomed.pdf',
 #%% 2D fit
 
 # Define 2D gaussian fit function. Formula is in thesis
-
 def two_D_gaussian(X, amplitude, x0, y0, sigma_x, sigma_y):
     
     # We define the function to fit: a particular example of a 2D gaussian
@@ -357,7 +353,6 @@ def two_D_gaussian(X, amplitude, x0, y0, sigma_x, sigma_y):
     return intensity.ravel()
 
 # Crop tweezer spot to RoI to fit. RoI is in the O(10) pixels
-
 def crop_RoI(fit_image, maxima_locations, cropping_range):
     
     # Store coordinates where maximum was detected 
@@ -384,9 +379,7 @@ def crop_RoI(fit_image, maxima_locations, cropping_range):
     
 img_RoI, img_RoI_raveled = crop_RoI(image_cropped, maxima_locations, cropping_range)
  
-
 # Fit needs 2D meshgrid
-
 def twoD_mesh(cropping_range):
     
     # Pixel 1D matrices (discreet)
@@ -396,7 +389,6 @@ def twoD_mesh(cropping_range):
     
     # 2D matrix
     x, y = np.meshgrid(pixels_x, pixels_y)
-    
     return x, y
 
 pixels_mesh_x, pixels_mesh_y = twoD_mesh(cropping_range)

@@ -8,7 +8,8 @@ This script will compute the azimuthal average around a spot.
 Preferably a single spot so the rings are clearly visible. 
 """
 
-# Libraries used
+#%% Imports
+
 import numpy as np
 import scipy.io
 from skimage.feature import blob_log
@@ -19,8 +20,7 @@ from mpl_toolkits import mplot3d
 from matplotlib import cm
 from scipy.special import jv
 
-""""This windows contains the variables that need to be edited, rest of script
-does not have to be edited"""
+#%% variables
 
 # magnification from newport objective. This is uncalibrated. 
 magnification = 71.1
@@ -29,6 +29,8 @@ threshold = 0.2
 # Number of spots expected for LoG. Since we don't use a pattern of spots set to 1
 number_spots_expected = 1
 # mat file
+
+#%% load .mat file
 
 """" The following function will take the .mat file and export a grayscale numpy array
 with similar dimensions as the accompanying screenshot"""
@@ -53,9 +55,10 @@ def load_and_save(mat_file):
     return cam_frame_cropped
  
 # execute function. Insert in brackets the .mat filename
-image0 = load_and_save('files/0.mat')
-image01 = load_and_save('files/minus01.mat')
-image025 = load_and_save('files/minus025.mat')
+image0 = load_and_save('data/1x1.mat')
+
+#%% Detect max location
+
  
 """The following part will detect maxima using the Laplacian of Gaussian algorithm"""
 # Load image from script 'loadmatSaveCamFrame.py'. 
@@ -102,11 +105,8 @@ def spot_detection(image):
 
 # Execute function and save maxima parameters
 maxima0 = spot_detection(image0)
-maxima01 = spot_detection(image01)
-maxima025 = spot_detection(image025)
 
-""""radial profile
-We want to compute the azimuthal average"""
+#%% Azimuthal average (radial)
 
 # We need an array to keep track of how many pixels we are from the center
 rad = np.arange(1, 101, 1)
@@ -142,10 +142,8 @@ def azimuthal_average(image, maxima):
     return intensity_normalized
 
 measurement0 = azimuthal_average(image0, maxima0)
-measurement01 = azimuthal_average(image01, maxima01)
-measurement025 = azimuthal_average(image025, maxima025)
 
-"""from tweezer vs airy script"""
+"""theory result: from tweezer vs airy script"""
 w_i = 0.002
 R = 0.002
 lam = 780* 10**(-9)
@@ -170,7 +168,8 @@ tweezer_array = np.array(tweezer_matrix)
 tweezer_intensity = abs(tweezer_array)**2
 tweezer_intensity_normalized = tweezer_intensity / np.max(tweezer_intensity)
 
-# Plot tweezer
+#%% Plotting, saving
+
 fig, ax = plt.subplots(1,1, figsize = (6, 4))
 ax.grid()
 
