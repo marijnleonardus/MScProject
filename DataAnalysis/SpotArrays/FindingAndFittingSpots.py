@@ -2,6 +2,7 @@
 """
 Created on Mon Jul 26 15:19:30 2021
 @author: Marijn Venderbosch
+
 This script
     - Takes raw camera data and saves region of interest
     - Detects spot using the laplacian of Gaussian algorithm
@@ -10,7 +11,8 @@ This script
     - Spots histograms of beam widths and trap depths 
 """
 
-#%% Libraries used
+#%% Imports
+
 import numpy as np
 import scipy.io
 from skimage.feature import blob_log
@@ -21,12 +23,11 @@ from mpl_toolkits import mplot3d
 from matplotlib import cm
 
 #%% Variables
-""""This windows contains the variables that need to be edited, rest of script
-does not have to be edited"""
+
 # Number of spots that we make, to check if spot detection worked
-number_spots_expected = 1
+number_spots_expected = 49
 # Location of .mat data file
-mat_file_location = 'files/1x1.mat'
+mat_file_location = 'files/7x7.mat'
 # Threshold on how sensitive spot detection is
 threshold = 0.2
 # How many pixels do we crop around the spot maxima locations
@@ -35,9 +36,11 @@ cropping_range = 14
 magnification = 71.14
 
 #%% Load .mat 
+
 """" The following function will take the .mat file and export a grayscale numpy array
 with similar dimensions as the accompanying screenshot"""
-def load_and_save(mat_file):
+
+def load_mat(mat_file):
     mat_file = scipy.io.loadmat(mat_file)
     
     # the cam_frame entry contains the raw camera data
@@ -55,22 +58,20 @@ def load_and_save(mat_file):
     
     # Cropping the array using the provided coordinates
     cam_frame_cropped = cam_frame[cam_x_min : cam_x_max , cam_y_min : cam_y_max]
-    
-    # Save cropped frame as numpy array
-    np.save('files/cam_frame_array_cropped', cam_frame_cropped)
- 
-# execute function. Insert in brackets the .mat filename
-load_and_save(mat_file_location)
+    return cam_frame_cropped
 
+# execute function. Insert in brackets the .mat filename
+image_transposed = load_mat(mat_file_location)
 
 
 #%% Spot detection
+
 """The following part will detect maxima using the Laplacian of Gaussian algorithm"""
 
 # Load image from script 'loadmatSaveCamFrame.py'. 
 # Image is cropped to region of interest
 # Transpose because camera is rotated
-image_transposed = np.load('files/cam_frame_array_cropped.npy')
+
 image = np.transpose(image_transposed)
 
 # Show camera image
@@ -94,12 +95,15 @@ plot_camera(image)
 # Num_sigma the number of intermediate steps in sigma.
 # Threshold determines how easily blobs are detected. 
 
-spots_LoG = blob_log(image, max_sigma = 30, num_sigma = 10, threshold = threshold)
+spots_LoG = blob_log(image,
+                     max_sigma = 30,
+                     num_sigma = 10,
+                     threshold = threshold)
+
 # Save result to be used by other script
 np.save('files/spots_LoG', spots_LoG)
 
 # Check if expected amount of spots is detected
-
 number_spots_found = spots_LoG.shape[0]
 if number_spots_expected != number_spots_found:
     print('Error: spot finding did not find the expected number of spots')
@@ -110,12 +114,13 @@ spots_LoG[:, 2] = spots_LoG[:, 2] * np.sqrt(2)
 # Find maxima locations and sizes. x and y are swapped becaues tranposed
 maxima_y_coordinates = spots_LoG[:, 0]
 maxima_x_coordinates = spots_LoG[:, 1]
+
 # Increase sizes crosses for better visibility
 factor = 5
 sizes = spots_LoG[:, 2] * factor
 
 # Initialize plot
-fig, axes = plt.subplots(1, 1, figsize=(5, 4))
+fig, axes = plt.subplots(1, 1, figsize = (5, 4))
 
 # Plot original image and overlay with crosses on spots where blobs are detected
 # Radii or cicles are from the gaussian kernels that detected them
@@ -123,18 +128,26 @@ axes.set_title('Laplacian of Gaussian Spots')
 axes.set_xlabel('Pixels')
 axes.set_ylabel('Pixels')
 axes.imshow(image)
-axes.scatter(maxima_x_coordinates , maxima_y_coordinates, marker = 'x', s = sizes, color = 'r', linewidth = 1)
+axes.scatter(maxima_x_coordinates,
+             maxima_y_coordinates,
+             marker = 'x',
+             s = sizes, 
+             color = 'r',
+             linewidth = 1)
 
 # Saving and showing
-plt.savefig('exports/SpotsFoundUsingLoG.png', dpi = 500, tight_layout = True)
+plt.savefig('exports/SpotsFoundUsingLoG.pdf',
+            pad_inches = 0,
+            dpi = 300,
+            tight_layout = True)
 
 #%% Crop spots and fit gaussians
+
 """This script crops the spots around the locatins found by the LoG algorithm. 
 Subsequently it fits 2D gaussians around the spot locations and plots them
 """
 
-# Import image as well as spot locations as found by LoG
-image = np.load('files/cam_frame_array_cropped.npy')
+# Import spot locations as found by LoG
 spot_locations = np.load('files/spots_LoG.npy')
 
 # Crop size: the amount of pixels 
@@ -196,15 +209,23 @@ def two_D_gaussian(X, amplitude, x0, y0, sigma_x, sigma_y):
 
 # Initial values. The fitting algorithm needs an initial guess. Esimated from 
 # plot of the spot. 
-initial_guess = (1, cropping_range, cropping_range, cropping_range / 3, cropping_range / 3)
+initial_guess = (1, 
+                 cropping_range, 
+                 cropping_range, 
+                 cropping_range / 3, 
+                 cropping_range / 3)
 
 # In the for loop, every iteration we want to store data
 # We need to initialize empty lists to store these variables. All variables are intially the
 # same empty list with dimensions equal to the amount of spots. 
 spot_raveled = max_Gauss_locations_list = [0] * amount_spots
 
-# Initialize plot o
-fig, axes = plt.subplots(amount_subplots, amount_subplots, figsize = (5, 6), sharex = True, sharey = True)
+# Initialize plot 
+fig, axes = plt.subplots(amount_subplots,
+                         amount_subplots, 
+                         figsize = (5, 6), 
+                         sharex = True,
+                         sharey = True)
 fig.suptitle('Spots Cropped Around Maxima (pixels)')
 
 # To be able to sum over axes it needs to be raveled
@@ -234,11 +255,13 @@ for j in range(amount_spots):
     
     # Store invididual fits 'popt' in a single variable containing all data over all the spots
     fit_parameters.append(popt)
+    
     # Store in single variable containing all data: fit_parameters
     # Store sigma, trap depth as well as max. locations
     sigma_r = 0.5 * (popt[3] + popt[4])
     sigma_list.append(sigma_r)
     trapdepth_list.append(popt[0])
+    
     # Store peak middle locations. These are deviations from the LoG locations (sub-pixel)
     max_Gauss_locations_list[j] = [popt[1] - cropping_range,
                                    popt[2] - cropping_range]
@@ -250,6 +273,7 @@ for j in range(amount_spots):
     
     # Extend ensures axes go from - cropping_range to + cropping_range
     ax[j].imshow(spots_cropped[j], extent = extent)
+    
     # Title: index but starting from 1 instead of 0 so add 1
     ax[j].set_title(j + 1)
     ax[j].set_axis_off()
@@ -272,10 +296,13 @@ for j in range(amount_spots):
     # residuals = ydata - f(xdata, *popt) where popt are fit 
     # We reshape the output of the 2D gaussian to a square array
     residuals = spots_cropped[j] - two_D_gaussian((x,y), *popt).reshape(2*cropping_range + 1, 2*cropping_range + 1)
+    
     # ss_res is the sum over all invididual residuals, square to keep positive numbers
     ss_res = np.sum(residuals**2)
+    
     # Total sum of squares is the sum over (ydata-mean(ydata))^2
     ss_tot = np.sum((spots_cropped[j] - np.mean(spots_cropped[j]))**2)
+    
     # Definition of the R^2
     r_squared_list.append(1- (ss_res/ ss_tot))
     
@@ -291,16 +318,20 @@ mu_r_squared, stddev_r_squared = norm.fit(r_squared_matrix)
 print("Average r^2 is: " + str(mu_r_squared))
 
 # Saving and showing    
-plt.savefig('exports/SpotsCropped_range10.png', dpi = 500)
+plt.savefig('exports/SpotsCropped_range10.png',
+            pad_inches = 0,
+            dpi = 300,
+            tight_layout = True)
 
-#%% 3d plot to see how it went
-"""We want to export one 3d image of the fit of G(x,y) to see how it went"""
+#%% 3d plot. Export a single 3D fit of G(x,y) to verify fitted correctly
+
 # Initialize figure
 fig =plt.figure(figsize = (5, 4))
 ax = plt.axes(projection='3d')
 
 # Plot data from camera as dots
-ax.scatter3D(x,y,spots_cropped[0],
+ax.scatter3D(x,y,
+             spots_cropped[0],
              color = 'black',
              s = 1,
              label = 'Data points'
@@ -308,7 +339,8 @@ ax.scatter3D(x,y,spots_cropped[0],
 
 # Plot gaussian fit 
 first_peak_parameters = fit_parameters[0]
-first_peak = two_D_gaussian((x,y),*first_peak_parameters).reshape(2*cropping_range+1,2*cropping_range+1)
+first_peak = two_D_gaussian((x,y),
+                            *first_peak_parameters).reshape(2 * cropping_range + 1, 2 * cropping_range + 1)
 im = ax.plot_surface(x,y,first_peak,
                 rstride = 1,
                 cstride = 1,
@@ -337,7 +369,7 @@ ax.set_zlabel(r'$G(x,y)/G_0$',
 ax.view_init(20, 35)
 
 plt.savefig('exports/3DSpotFitGaussian.pdf', 
-            dpi = 200, 
+            dpi = 300, 
             pad_inches = 0,
             bbox_inches = 'tight')
 
@@ -398,6 +430,7 @@ mu_y_spacing_microns, stddev_y_spacing_microns = norm.fit(y_spacing_microns)
 ratio_x_y_spacing = mu_y_spacing_microns / mu_x_spacing_microns   
 
 #%% Histograms of distributions
+
 """The following script will plot histograms of the obtained beamwidths and 
 trap depths, as well as finding the averages and spreads in them."""
 
