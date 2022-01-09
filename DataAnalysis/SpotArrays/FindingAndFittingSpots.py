@@ -77,28 +77,21 @@ image_transposed = np.load('files/cam_frame_array_cropped.npy')
 image = np.transpose(image_transposed)
 
 # Show camera image
-def plot_camera(img):
-    # plots grayscale iamge of actual camera
-    fig, ax = plt.subplots()
-    
-    # normalize
-    img_normalized = img / np.max(img)
-    
-    ax.imshow(img_normalized, 
-              cmap = 'gray'
-              )
-    
-    ax.set_xlabel(r'$x$ [pixels]')
-    ax.set_ylabel(r'$y$ [pixels]')
-    
-    plt.savefig('exports/camera_image.pdf', 
-                pad_inches = 0,
-                dpi = 300,
-                bbox_inches = 'tight'
-                )
-    
-plot_camera(image)
+image_normalized = image / np.max(image)
 
+# plot for camera image and LoG spots
+fig, (axCam,axLoG) = plt.subplots(ncols = 2,
+                                  nrows = 1, 
+                                  sharey = True,
+                                  figsize = (8, 4))
+
+axCam.imshow(image_normalized, 
+          cmap = 'gray'
+          )    
+   
+axCam.set_xlabel(r'$x$ [pixels]')
+axCam.set_ylabel(r'$y$ [pixels]')
+    
 # Use LoG blog detection. 
 # Max_sigma is the max. standard deviation of the Gaussian kernel used. 
 # Num_sigma the number of intermediate steps in sigma.
@@ -124,26 +117,38 @@ maxima_x_coordinates = spots_LoG[:, 1]
 factor = 6
 sizes = spots_LoG[:, 2] * factor
 
-# Initialize plot
-fig, axes = plt.subplots(1, 1, figsize=(5, 4))
 
 # Plot original image and overlay with crosses on spots where blobs are detected
 # Radii or cicles are from the gaussian kernels that detected them
-axes.set_xlabel(r'$x$ [pixels]')
-axes.set_ylabel(r'$y$ [pixels]')
+axLoG.set_xlabel(r'$x$ [pixels]')
 
-axes.imshow(image,
+axLoG.imshow(image,
             cmap = 'gray')
 
-axes.scatter(maxima_x_coordinates , maxima_y_coordinates,
+axLoG.scatter(maxima_x_coordinates , maxima_y_coordinates,
              marker = 'x',
              s = sizes, 
              color = 'r', 
              linewidth = 1.2
              )
 
+# Annotate
+axCam.text(-110,
+         30,
+         r'a)',
+         fontsize = 16,
+         fontweight = 'bold'
+         )
+axLoG.text(-70,
+         30,
+         r'b)',
+         fontsize = 16,
+         fontweight = 'bold'
+         )
+
+
 # Saving and showing
-plt.savefig('exports/SpotsFoundUsingLoG.pdf', 
+plt.savefig('exports/CamImgLoGSpots.pdf', 
             pad_inches = 0,
             dpi = 300,
             bbox_inches = 'tight'
