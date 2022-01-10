@@ -40,14 +40,14 @@ maskArray = np.array(mask)
 
 #%% Ploting
 fig, (ax1,ax2) = plt.subplots(1, 2, 
-                              #tight_layout = True,
-                              figsize = (10, 4))
+                              tight_layout = True,
+                              figsize = (12, 3.5))
 
 maskPlot = ax1.imshow(maskArray, cmap = 'gray')
 ax1.set_xlabel(r'$x$ [pixels]')
 ax1.set_ylabel(r'$y$ [pixels]')
 
-ax1.text(-300,
+ax1.text(-200,
          50,
          r'a)',
          fontsize = 14,
@@ -58,20 +58,16 @@ twoDplot = ax2.imshow(patternCrop)
 ax2.set_xlabel(r'$x$ [focal units]')
 ax2.set_ylabel(r'$y$ [focal units]')
 
-ax2.text(-14,
+ax2.text(-9,
          1.8,
          r'b)',
          fontsize = 14,
          fontweight = 'bold'
          )
 
-# colorbar
-divider = make_axes_locatable(ax2)
-cax = divider.append_axes('right', 
-                          size = '5%',
-                          pad = 0.05,
-                          aspect = 20)
-fig.colorbar(twoDplot, cax=cax, orientation='vertical')
+fig.colorbar(twoDplot,
+             pad=0.02,
+             shrink = 0.5)
 
 
 

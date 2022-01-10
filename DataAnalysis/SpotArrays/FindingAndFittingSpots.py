@@ -26,13 +26,13 @@ from matplotlib.ticker import (MultipleLocator, FormatStrFormatter,
 #%% Variables
 
 # Number of spots that we make, to check if spot detection worked
-number_spots_expected = 49
+number_spots_expected = 9
 # Location of .mat data file
-mat_file_location = 'files/10 4 adjusted spacing/7x7.mat'
+mat_file_location = 'files/10 4 adjusted spacing/3x3.mat'
 # Threshold on how sensitive spot detection is
 threshold = 0.2
 # How many pixels do we crop around the spot maxima locations
-cropping_range = 5
+cropping_range = 12
 # magnification from newport objective. This is uncalibrated. 
 magnification = 67
 pixel_size_microns = 4.65
@@ -278,7 +278,7 @@ for j in range(amount_spots):
     # Extend ensures axes go from - cropping_range to + cropping_range
     ax[j].imshow(spots_cropped[j], extent = extent)
     # Title: index but starting from 1 instead of 0 so add 1
-    ax[j].set_title(j + 1)
+    ax[j].set_title('m ='+ str(j + 1))
     ax[j].set_axis_off()
     
     # Plot circles with correct center and sigma. 
@@ -330,10 +330,10 @@ plt.savefig('exports/SpotsCropped_range10.png',
 
 # # Plot data from camera as dots
 # ax.scatter3D(x,y,spots_cropped[0],
-#              color = 'black',
-#              s = 1,
-#              label = 'Data points'
-#              )
+#               color = 'black',
+#               s = 1,
+#               label = 'Data points'
+#               )
 
 # # Plot gaussian fit 
 # first_peak_parameters = fit_parameters[0]
@@ -451,7 +451,7 @@ stddev_trap_depth_unity = stddev_trap_depth / mu_trap_depth
 # Number of bins: increase for more spots. Takes square root of number of spots and
 # rounds to nearest integer.
 n_bins = int(np.sqrt(amount_spots))
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize = (7.5, 4))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize = (6.5, 3.8))
 
 
 # Plot histograms: normalized using 'density' option
@@ -530,13 +530,13 @@ ax2.yaxis.set_major_locator(MultipleLocator(0.5))
 ax1.text(0.905,
          13,
          r'$(0.89\pm0.03)$ $\mu$m',
-         fontsize = 12,
+         fontsize = 9,
          color = 'r'
          )
 ax2.text(1.055,
          13 *.5/1.69,
          r'$(1.00\pm0.10)$',
-         fontsize = 12,
+         fontsize = 9,
          color = 'r'
          )
 
