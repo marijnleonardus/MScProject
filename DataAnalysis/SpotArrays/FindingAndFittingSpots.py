@@ -31,7 +31,11 @@ mat_file_location = 'files/7x7.mat'
 # Threshold on how sensitive spot detection is
 threshold = 0.2
 # How many pixels do we crop around the spot maxima locations
+<<<<<<< Updated upstream
 cropping_range = 14
+=======
+cropping_range = 4
+>>>>>>> Stashed changes
 # magnification from newport objective. This is uncalibrated. 
 magnification = 71.14
 
@@ -57,9 +61,18 @@ def load_mat(mat_file):
     cam_y_max = int(mat_file['cam_y_max'])
     
     # Cropping the array using the provided coordinates
+<<<<<<< Updated upstream
     cam_frame_cropped = cam_frame[cam_x_min : cam_x_max , cam_y_min : cam_y_max]
     return cam_frame_cropped
 
+=======
+    #cam_frame_cropped = cam_frame[cam_x_min : cam_x_max , cam_y_min : cam_y_max]
+    cam_frame_cropped = cam_frame[150 : 500, 100 : 450]
+    
+    # Save cropped frame as numpy array
+    np.save('files/cam_frame_array_cropped', cam_frame_cropped)
+ 
+>>>>>>> Stashed changes
 # execute function. Insert in brackets the .mat filename
 image_transposed = load_mat(mat_file_location)
 
@@ -220,11 +233,18 @@ initial_guess = (1,
 # same empty list with dimensions equal to the amount of spots. 
 spot_raveled = max_Gauss_locations_list = [0] * amount_spots
 
+<<<<<<< Updated upstream
 # Initialize plot 
 fig, axes = plt.subplots(amount_subplots,
                          amount_subplots, 
                          figsize = (5, 6), 
                          sharex = True,
+=======
+# Initialize plot o
+fig, axes = plt.subplots(amount_subplots, amount_subplots,
+                         figsize = (5, 6),
+                        # sharex = True, 
+>>>>>>> Stashed changes
                          sharey = True)
 fig.suptitle('Spots Cropped Around Maxima (pixels)')
 
@@ -275,8 +295,13 @@ for j in range(amount_spots):
     ax[j].imshow(spots_cropped[j], extent = extent)
     
     # Title: index but starting from 1 instead of 0 so add 1
+<<<<<<< Updated upstream
     ax[j].set_title(j + 1)
     ax[j].set_axis_off()
+=======
+    ax[j].set_title('m = '+ str(j + 1))
+    #ax[j].set_axis_off()
+>>>>>>> Stashed changes
     
     # Plot circles with correct center and sigma. 
     # Sigma is average of x and y, but also multiplied with 2 becaues its 1/e^2
@@ -318,7 +343,11 @@ mu_r_squared, stddev_r_squared = norm.fit(r_squared_matrix)
 print("Average r^2 is: " + str(mu_r_squared))
 
 # Saving and showing    
+<<<<<<< Updated upstream
 plt.savefig('exports/SpotsCropped_range10.png',
+=======
+plt.savefig('exports/SpotsCropped_range12.pdf', 
+>>>>>>> Stashed changes
             pad_inches = 0,
             dpi = 300,
             tight_layout = True)
@@ -460,6 +489,16 @@ fig, (ax1, ax2) = plt.subplots(1, 2, tight_layout = True)
 # Plot histograms: normalized using 'density' option
 ax1.hist(beamwidth_microns, bins = n_bins, hatch = '/', density = True)
 ax2.hist(trapdepth_matrix_unity, bins = n_bins, hatch = '/', density = True)
+
+# Annotate
+
+ax1.text(0.85,
+        0.9,
+         r'a)',
+         fontsize = 14,
+         fontweight = 'bold'
+         )
+
 
 # Get same limits for Gausian as plot range
 xmin_beamwidth, xmax_beamwidth = ax1.get_xlim()
