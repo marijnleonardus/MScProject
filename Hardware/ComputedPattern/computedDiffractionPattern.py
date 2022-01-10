@@ -12,6 +12,9 @@ Script plots computed pattern from GSW algorithm as well as phasemask that provi
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import cm
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 
 #%% load data
 
@@ -19,8 +22,7 @@ import matplotlib.pyplot as plt
 pattern = Image.open('files/7x7_calc_pattern.bmp')
 patternGrey = pattern.convert('L')
 
-patternArray = np.transpose(
-    np.array(patternGrey) / 255)
+patternArray = np.array(patternGrey) / 255
 
 # crop
 def crop_center(img, cropx, cropy):
@@ -29,16 +31,17 @@ def crop_center(img, cropx, cropy):
     starty = int(y / 2 - (cropy / 2))  
     return img[starty : starty + cropy, startx : startx + cropx]
 
-patternCrop = crop_center(patternArray, 50, 80)
+patternCrop = crop_center(patternArray, 80, 50)
 
 # load phasemask
 mask = Image.open('files/7x7_mask.bmp')
-maskArray = np.transpose(
-    np.array(mask)
-    )
+maskArray = np.array(mask)
+    
 
 #%% Ploting
-fig, (ax1,ax2) = plt.subplots(1, 2, figsize = (8,5))
+fig, (ax1,ax2) = plt.subplots(1, 2, 
+                              #tight_layout = True,
+                              figsize = (10, 4))
 
 maskPlot = ax1.imshow(maskArray, cmap = 'gray')
 ax1.set_xlabel(r'$x$ [pixels]')
@@ -47,7 +50,7 @@ ax1.set_ylabel(r'$y$ [pixels]')
 ax1.text(-300,
          50,
          r'a)',
-         fontsize = 16,
+         fontsize = 14,
          fontweight = 'bold'
          )
 
@@ -58,9 +61,18 @@ ax2.set_ylabel(r'$y$ [focal units]')
 ax2.text(-14,
          1.8,
          r'b)',
-         fontsize = 16,
+         fontsize = 14,
          fontweight = 'bold'
          )
+
+# colorbar
+divider = make_axes_locatable(ax2)
+cax = divider.append_axes('right', 
+                          size = '5%',
+                          pad = 0.05,
+                          aspect = 20)
+fig.colorbar(twoDplot, cax=cax, orientation='vertical')
+
 
 
 plt.savefig('exports/MaskAndComputedPattern.pdf',
