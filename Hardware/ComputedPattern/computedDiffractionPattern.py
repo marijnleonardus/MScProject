@@ -36,7 +36,6 @@ patternCrop = crop_center(patternArray, 80, 50)
 # load phasemask
 mask = Image.open('files/7x7_mask.bmp')
 maskArray = np.array(mask)
-    
 
 #%% Ploting
 fig, (ax1,ax2) = plt.subplots(1, 2, 
@@ -47,7 +46,8 @@ fig, (ax1,ax2) = plt.subplots(1, 2,
                               figsize = (7.8, 3.5*2/3))
 >>>>>>> Stashed changes
 
-maskPlot = ax1.imshow(maskArray, cmap = 'gray')
+maskPlot = ax1.imshow(maskArray, 
+                      cmap = 'gray')
 ax1.set_xlabel(r'$x$ [pixels]')
 ax1.set_ylabel(r'$y$ [pixels]')
 
@@ -56,12 +56,6 @@ ax1.text(-200,
          50,
          r'a)',
          fontsize = 14,
-=======
-ax1.text(-400,
-         50,
-         r'a)',
-         fontsize = 12,
->>>>>>> Stashed changes
          fontweight = 'bold'
          )
 
@@ -74,24 +68,8 @@ ax2.text(-9,
          1.8,
          r'b)',
          fontsize = 14,
-=======
-ax2.text(-20,
-         1.8,
-         r'b)',
-         fontsize = 12,
->>>>>>> Stashed changes
          fontweight = 'bold'
          )
-
-fig.colorbar(twoDplot,
-             pad=0.02,
-<<<<<<< Updated upstream
-             shrink = 0.5)
-=======
-             shrink = 0.7)
->>>>>>> Stashed changes
-
-
 
 plt.savefig('exports/MaskAndComputedPattern.pdf',
             dpi = 100,

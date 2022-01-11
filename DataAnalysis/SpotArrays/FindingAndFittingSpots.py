@@ -83,10 +83,12 @@ image_normalized = image / np.max(image)
 fig, (axCam,axLoG) = plt.subplots(ncols = 2,
                                   nrows = 1, 
                                   sharey = True,
-                                  figsize = (8, 4))
+                                  tight_layout = True,
+                                  figsize = (7.7, 3.4))
 
 axCam.imshow(image_normalized, 
-          cmap = 'gray'
+             cmap = 'gray'
+          #cmap = 'gray'
           )    
    
 axCam.set_xlabel(r'$x$ [pixels]')
@@ -123,34 +125,38 @@ sizes = spots_LoG[:, 2] * factor
 axLoG.set_xlabel(r'$x$ [pixels]')
 
 axLoG.imshow(image,
-            cmap = 'gray')
+            cmap = 'gray'
+            )
 
 axLoG.scatter(maxima_x_coordinates , maxima_y_coordinates,
              marker = 'x',
              s = sizes, 
-             color = 'r', 
-             linewidth = 1.2
+             color = 'w', 
+             linewidth = 0.7
              )
 
 # Annotate
 axCam.text(-110,
          30,
          r'a)',
-         fontsize = 16,
+         fontsize = 14,
          fontweight = 'bold'
          )
 axLoG.text(-70,
          30,
          r'b)',
-         fontsize = 16,
+         fontsize = 14,
          fontweight = 'bold'
          )
 
+# colorbar
+#fig.colorbar(cm.ScalarMappable(cmap = 'viridis'),
+#             ax = axLoG)
 
 # Saving and showing
 plt.savefig('exports/CamImgLoGSpots.pdf', 
             pad_inches = 0,
-            dpi = 300,
+            dpi = 400,
             bbox_inches = 'tight'
             )
 
