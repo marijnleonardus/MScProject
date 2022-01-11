@@ -23,7 +23,6 @@ nquartz = 1.44
 nr = n0 / n
 NA = 0.5
 d = 0.5e-3
-deff = d / nquartz
 
 #%% calculation
 
@@ -36,18 +35,33 @@ rho = np.linspace(0, 1, 101)
 # Eq. (7) from Iwaniuk 2007
 # Vol. 19, No. 20 / OPTICS EXPRESS 19407
 
-phi = np.pi * deff * (1 - nr) / wavelength * (3 * rho**4 * NA**4 / 4 * (1 - nr**2)**2)
+# Taking both ^2 and ^4 term
+Z04 = np.pi * d * (1 - nr) / wavelength * (-1 * rho**2 * NA**2 * (1 - nr**2) + 3 * rho**4 * NA**4 / 4 * (1 - nr**2)**2)
+
+# Only taking ^4 term
+Z44 = np.pi * d * (1 - nr) / wavelength * (3/4* rho**4 * NA**4 * (1 - nr**2)**2)
+
 
 # Divide by 2 pi to get amount of phase shifts
-waves = phi / (2 * np.pi)
+wavesZ04 = Z04 / (2 * np.pi)
+wavesZ44 = Z44 / (2 * np.pi)
 
 #%% plotting, saving
 
-fig, ax = plt.subplots(figsize = (3, 2))
-ax.plot(rho, waves)
+fig, (ax1, ax2) = plt.subplots(ncols = 2, 
+                               nrows = 1,
+                               tight_layout = True,
+                               figsize = (5, 2.5))
+ax1.plot(rho, wavesZ04)
+ax2.plot(rho, wavesZ44)
 
-ax.set_xlabel(r'$r/R$', usetex = True)
-ax.set_ylabel(r'$\phi(r)/2\pi$', usetex = True)
+ax1.set_xlabel(r'$r/R$', usetex = True)
+ax2.set_ylabel(r'$\phi(\rho)/2\pi$', usetex = True)
+
+ax2.set_xlabel(r'$r/R$', usetex = True)
+ax1.set_ylabel(r'$\phi(\rho)/2\pi$', usetex = True)
+
+
 
 plt.savefig('exports/SphericalAberrationTerm.pdf',
             pad_inches = 0,
