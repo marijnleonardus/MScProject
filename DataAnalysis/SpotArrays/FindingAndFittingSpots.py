@@ -20,15 +20,16 @@ from scipy import optimize
 from scipy.stats import norm
 from mpl_toolkits import mplot3d
 from matplotlib import cm
-from matplotlib.ticker import (MultipleLocator, FormatStrFormatter,
+from matplotlib.ticker import (MultipleLocator,
+                               FormatStrFormatter,
                                AutoMinorLocator)
 
 #%% Variables
 
 # Number of spots that we make, to check if spot detection worked
-number_spots_expected = 9
+number_spots_expected = 49
 # Location of .mat data file
-mat_file_location = 'files/10 4 adjusted spacing/3x3.mat'
+mat_file_location = 'files/10 4 adjusted spacing/7x7.mat'
 # Threshold on how sensitive spot detection is
 threshold = 0.2
 # How many pixels do we crop around the spot maxima locations
@@ -131,23 +132,21 @@ axLoG.imshow(image,
 axLoG.scatter(maxima_x_coordinates , maxima_y_coordinates,
              marker = 'x',
              s = sizes, 
-             color = 'w', 
+             color = 'r', 
              linewidth = 0.7
              )
 
 # Annotate
-axCam.text(-110,
-         30,
-         r'a)',
-         fontsize = 14,
-         fontweight = 'bold'
-         )
-axLoG.text(-70,
-         30,
-         r'b)',
-         fontsize = 14,
-         fontweight = 'bold'
-         )
+axCam.annotate("a)", 
+               xy = (-0.2, 0.92),
+               xycoords = "axes fraction"
+               , fontweight = 'bold', 
+               fontsize = 14)
+axLoG.annotate("b)", 
+               xy = (-0.2, 0.92),
+               xycoords = "axes fraction"
+               , fontweight = 'bold', 
+               fontsize = 14)
 
 # colorbar
 #fig.colorbar(cm.ScalarMappable(cmap = 'viridis'),
@@ -457,7 +456,7 @@ stddev_trap_depth_unity = stddev_trap_depth / mu_trap_depth
 # Number of bins: increase for more spots. Takes square root of number of spots and
 # rounds to nearest integer.
 n_bins = int(np.sqrt(amount_spots))
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize = (6.5, 3.8))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize = (6, 2.5))
 
 
 # Plot histograms: normalized using 'density' option
@@ -533,20 +532,21 @@ ax2.xaxis.set_minor_locator(MultipleLocator(0.05))
 ax2.yaxis.set_major_locator(MultipleLocator(0.5))
 
 # Annotate
-ax1.text(0.905,
-         13,
-         r'$(0.89\pm0.03)$ $\mu$m',
-         fontsize = 9,
-         color = 'r'
-         )
-ax2.text(1.055,
-         13 *.5/1.69,
-         r'$(1.00\pm0.10)$',
-         fontsize = 9,
-         color = 'r'
-         )
+ax1.annotate(r'$(0.89\pm0.03)$ $\mu$m', 
+               xy = (0.6, 0.9),
+               xycoords = "axes fraction", 
+               fontweight = 'bold',
+               color = 'r',
+               fontsize = 9)
 
-fig.legend(loc='upper left', bbox_to_anchor=(0.115, 1.03))
+ax2.annotate(r'$(1.00\pm0.10)$', 
+               xy = (0.6, 0.9),
+               xycoords = "axes fraction", 
+               fontweight = 'bold', 
+               color = 'r',
+               fontsize = 9)
+
+#fig.legend(loc='upper right', bbox_to_anchor=(0.115, 1.03))
 
 # Save plot
 plt.savefig('exports/FittedHistograms.pdf', 
