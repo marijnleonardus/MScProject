@@ -59,9 +59,9 @@ fig, (axPaper, axZ04, axZ44) = plt.subplots(ncols = 3,
                                tight_layout = True,
                                figsize = (8, 3))
 
-axPaper.plot(rho, wavesCorrectionPaper, label = r'$W(\rho)$')
-axZ04.plot(rho, wavesZ04, label = r'$Z_0^4$')
-axZ44.plot(rho, wavesZ44, label = r'only $\rho^4$ term')
+axPaper.plot(rho, wavesCorrectionPaper, label = r'$\phi(\rho)$')
+axZ04.plot(rho, wavesZ04, label = r'$Z_0^4$ term')
+axZ44.plot(rho, wavesZ44, label = r'$\rho^4$ term')
 
 # shared y axis labels
 axPaper.set_ylabel(r'$\phi(\rho)/2\pi$', usetex = True)
@@ -71,9 +71,16 @@ axPaper.set_xlabel(r'$r/R$', usetex = True)
 axZ04.set_xlabel(r'$r/R$', usetex = True)
 axZ44.set_xlabel(r'$r/R$', usetex = True)
 
+# legend
 axPaper.legend(loc = 'upper right')
 axZ04.legend(loc = 'upper center')
 axZ44.legend(loc = 'upper left')
+
+# annotate
+axPaper.annotate("a)", xy = (0.1, 0.1), xycoords = "axes fraction", fontweight = 'bold', fontsize = 12)
+axZ04.annotate("b)", xy=(0.1, 0.1), xycoords = "axes fraction", fontweight = 'bold', fontsize = 12)
+axZ44.annotate("c)", xy=(0.1, 0.1), xycoords = "axes fraction", fontweight = 'bold', fontsize = 12)
+
 
 plt.savefig('exports/SphericalAberrationTerms.pdf',
             pad_inches = 0,
