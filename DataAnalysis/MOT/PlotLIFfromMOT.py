@@ -21,13 +21,13 @@ from scipy.optimize import curve_fit
 
 
 #%% Variables
-cropping_range = 60 # pixels
+cropping_range = 45 # pixels
 pixel_size = 4.65e-6 #microns
 magnification = 0.5      
 
 #%%importing data
 # bmp file containing MOT image
-image = Image.open('images/gain1exp10_2.bmp')
+image = Image.open('images/side/MOT_8.bmp')
 array = np.array(image) 
 
 # Finding center MOT
@@ -59,32 +59,17 @@ HistColsNorm = HistCols / np.max(HistCols)
 def Lorentzian(x, offset, amplitude, middle, width):
     return offset + amplitude * width / ((x - middle)**2 + .25 * width**2)
 
-def Gaussian(x, a, b, c):
-    return a + b * np.exp(-(x**2) / (2*c**2))
 
-# Initial guessses
-
-# Lorentzian
+# Lorentzian initial guess fit
 amplitude_guess = 1
 offset_guess = 0.1
 width_guess = 1
 middle_guess = 0
 LorentzianGuess = [offset_guess, amplitude_guess, middle_guess, width_guess]
 
-# Gaussian guess
-a = 0.1
-b = 1
-c = 0.1
-GaussianGuess = [a, b, c]
-
 # Fit Lorentzian
 poptRows, pcovRows = curve_fit(Lorentzian, RowRange, HistRowsNorm, p0 = LorentzianGuess)
 poptCols, pcovCols = curve_fit(Lorentzian, ColRange, HistColsNorm, p0 = LorentzianGuess)
-
-# Fit Gaussian
-# We don't plot the Gaussian but only use it to get an estimate of the sigma
-poptRowsGauss, pcovRowsGauss = curve_fit(Gaussian, RowRange, HistRowsNorm, p0 = GaussianGuess)
-poptColsGauss, pcovGolsGauss = curve_fit(Gaussian, ColRange, HistColsNorm, p0 = GaussianGuess)
 
 #%% Plot histograms over rows and columns
 figSum, (axRow, axCol) = plt.subplots(nrows = 1,
@@ -99,14 +84,14 @@ axCol.grid()
 axRow.scatter(RowRange,
               HistRowsNorm,
               s = 7)
-axRow.set_xlabel('Horizontal plane camera [mm]')
-axRow.set_ylabel('Normalized pixel counts [a.u.]')
+axRow.set_xlabel(r'$x$ [mm]')
+axRow.set_ylabel(r'Counts [a.u.]')
 
 # Sum over columns
 axCol.scatter(ColRange,
               HistColsNorm,
               s = 7)
-axCol.set_xlabel('Vertical plane camera [mm]')
+axCol.set_xlabel(r'$y$ [mm]')
 
 # Plot fit
 axRow.plot(RowRange,
@@ -116,17 +101,16 @@ axCol.plot(ColRange,
            Lorentzian(ColRange, *poptCols),
            color = 'red')
 
-# Plot Gaussian, uncomment to show
-# axRow.plot(RowRange, 
-#            Gaussian(RowRange, *poptRowsGauss))
-# axCol.plot(ColRange,
-#            Gaussian(ColRange, *poptColsGauss))
+# Plot fits
+plt.savefig('exports/FitSide.pdf',
+            dpi = 300,
+            pad_inches = 0,
+            bbox_inches= 'tight')
              
 #%% Plot MOT fluoresence image
 fig = plt.figure(figsize = (4, 3))
 ax = plt.subplot()
 
-# MOT fluoresence image
 img = ax.imshow(RoI_normalized, 
                 interpolation = 'nearest',
                 origin = 'lower',
@@ -154,12 +138,15 @@ scale_bar = AnchoredSizeBar(ax.transData,
                            size_vertical = 2.5)
 ax.add_artist(scale_bar)
 
-#%% Saving and printing Sigma
-plt.savefig('exports/LiF_MOT_november.pdf',
+#%% Saving
+plt.savefig('exports/MOTfluoreesnceSide.pdf',
             dpi = 300,
+            pad_inches = 0,
             bbox_inches= 'tight')
 
-GaussianSigma = 0.5 * (poptRowsGauss[2] + poptColsGauss[2])
-print('sigma is: ' + str(GaussianSigma) + ' um')
+FWHM_row = abs(poptRows[3])
+FWHM_col = poptCols[3]
 
-plt.show()
+print('FWHM (rows) is: ' + str(FWHM_row) + ' um')
+print('FWHM (columns) is: ' + str(FWHM_col) + ' um')
+
