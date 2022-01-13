@@ -33,7 +33,7 @@ mat_file_location = 'files/10 4 adjusted spacing/7x7.mat'
 # Threshold on how sensitive spot detection is
 threshold = 0.2
 # How many pixels do we crop around the spot maxima locations
-cropping_range = 12
+cropping_range = 5
 # magnification from newport objective. This is uncalibrated. 
 magnification = 67
 pixel_size_microns = 4.65
@@ -461,7 +461,7 @@ fig, (ax1, ax2) = plt.subplots(1, 2, figsize = (6, 2.5))
 
 # Plot histograms: normalized using 'density' option
 ax1.hist(beamwidth_microns, 
-         bins = 9, 
+         bins = n_bins, 
          #hatch = '/', 
          alpha = 0.7,
          density = True,
