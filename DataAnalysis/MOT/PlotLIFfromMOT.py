@@ -18,16 +18,18 @@ import numpy as np
 from numpy import unravel_index
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 from scipy.optimize import curve_fit
+from matplotlib.ticker import (MultipleLocator, FormatStrFormatter,
+                               AutoMinorLocator)
 
 
 #%% Variables
 cropping_range = 45 # pixels
 pixel_size = 4.65e-6 #microns
-magnification = 0.5      
+magnification = 0.78      
 
 #%%importing data
 # bmp file containing MOT image
-image = Image.open('images/side/MOT_8.bmp')
+image = Image.open('images/top/gain1exp10_2.bmp')
 array = np.array(image) 
 
 # Finding center MOT
@@ -74,23 +76,29 @@ poptCols, pcovCols = curve_fit(Lorentzian, ColRange, HistColsNorm, p0 = Lorentzi
 #%% Plot histograms over rows and columns
 figSum, (axRow, axCol) = plt.subplots(nrows = 1,
                                       ncols = 2,
+                                      tight_layout = True,
                                       sharey = True,
-                                      figsize = (7,3))
-# Grid
+                                      figsize = (6,3))
+# Grid, ticks
 axRow.grid()
+axRow.xaxis.set_major_locator(MultipleLocator(0.1))
+axRow.xaxis.set_minor_locator(MultipleLocator(0.05))
+
 axCol.grid()
+axCol.xaxis.set_major_locator(MultipleLocator(0.1))
+axCol.xaxis.set_minor_locator(MultipleLocator(0.05))
 
 # Sum over rows
 axRow.scatter(RowRange,
               HistRowsNorm,
-              s = 7)
+              s = 15)
 axRow.set_xlabel(r'$x$ [mm]')
-axRow.set_ylabel(r'Counts [a.u.]')
+axRow.set_ylabel(r'Normalized counts [a.u.]')
 
 # Sum over columns
 axCol.scatter(ColRange,
               HistColsNorm,
-              s = 7)
+              s = 15)
 axCol.set_xlabel(r'$y$ [mm]')
 
 # Plot fit
@@ -102,13 +110,15 @@ axCol.plot(ColRange,
            color = 'red')
 
 # Plot fits
-plt.savefig('exports/FitSide.pdf',
+plt.savefig('exports/FitTop.pdf',
             dpi = 300,
             pad_inches = 0,
             bbox_inches= 'tight')
+
+
              
 #%% Plot MOT fluoresence image
-fig = plt.figure(figsize = (4, 3))
+fig = plt.figure(figsize = (4.5, 3))
 ax = plt.subplot()
 
 img = ax.imshow(RoI_normalized, 
@@ -125,12 +135,12 @@ cb = plt.colorbar(img,
                   orientation = 'vertical')
 
 # Scalebar
-scalebar_object_size = 200e-6 #micron
+scalebar_object_size = 100e-6 #micron
 scalebar_pixels = int(scalebar_object_size / (pixel_size / magnification)) # integer number pixels
 
 scale_bar = AnchoredSizeBar(ax.transData,
                            scalebar_pixels, # pixels
-                           r'200 $\mu$m', # real life distance of scale bar
+                           r'100 $\mu$m', # real life distance of scale bar
                            'lower left', 
                            pad = 0,
                            color = 'white',
@@ -139,7 +149,7 @@ scale_bar = AnchoredSizeBar(ax.transData,
 ax.add_artist(scale_bar)
 
 #%% Saving
-plt.savefig('exports/MOTfluoreesnceSide.pdf',
+plt.savefig('exports/MOTfluoresenceTop.pdf',
             dpi = 300,
             pad_inches = 0,
             bbox_inches= 'tight')

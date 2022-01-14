@@ -37,16 +37,18 @@ df_raw_data = pd.read_csv('files/Raw0.csv',
 raw_array = np.array(df_raw_data)
 raw_normalized = np.array(raw_array[:, 1]) / np.max(raw_array[:, 1])
 
-#%%plotting
+#%% plotting
+
 #ax.plot(lut_813[:, 1], label = '813.lut')
-fig, ax = plt.subplots(figsize = (3.3, 2.2))
+fig, ax = plt.subplots(figsize = (3.5, 2.6),
+                       tight_layout = True)
 line1 = ax.plot(lut_820,
         label = 'LUT',
         color = 'navy')
 
 ax.grid()
-ax.set_xlabel('grey level 0-255')
-ax.set_ylabel('voltage response [V]',
+ax.set_xlabel('gray level level 0-255')
+ax.set_ylabel('applied voltage [V]',
               color = 'navy')
 ax.set_ylim(-0.2, 5.2)
 ax.tick_params(direction = 'in')
@@ -59,6 +61,8 @@ line2 = ax2.plot(raw_normalized,
          )
 ax2.set_ylabel(r'$P/P_0$', 
                color = 'red')
+ax2.tick_params(direction = 'in')
+
 
 # legend
 lines = line1 + line2
@@ -66,4 +70,7 @@ labels = [l.get_label() for l in lines]
 plt.legend(lines, labels, loc = 'upper left')
 
 #%% saving
-plt.savefig('exports/LUTplot.pdf', dpi = 300, bbox_inches = 'tight')
+plt.savefig('exports/LUTplot.pdf',
+            pad_inches = 0,
+            dpi = 300,
+            bbox_inches = 'tight')
