@@ -41,7 +41,7 @@ maskArray = np.array(mask)
 fig, (ax1,ax2) = plt.subplots(nrows = 1,
                               ncols = 2, 
                               #tight_layout = True,
-                              figsize = (11, 2.5)
+                              figsize = (9, 2.8)
                               )
                               
 maskPlot = ax1.imshow(maskArray, 
@@ -50,19 +50,20 @@ ax1.set_xlabel(r'$x$ [pixels]')
 ax1.set_ylabel(r'$y$ [pixels]')
 
 
-twoDplot = ax2.imshow(patternCrop)
+twoDplot = ax2.imshow(patternCrop,
+                      cmap = 'gray')
 ax2.set_xlabel(r'$x$ [focal units]')
 ax2.set_ylabel(r'$y$ [focal units]')
 
 # colorbar
-plt.colorbar(twoDplot,
-             shrink = 0.5,
-             pad = 0.025,
-             aspect = 22)
+#plt.colorbar(twoDplot,
+  #           shrink = 0.5,
+  #           pad = 0.025,
+   #          aspect = 22)
 
 # annotate
-#ax1.annotate("(a)", xy = (0.5, -0.32), xycoords = "axes fraction", fontweight = 'bold', fontsize = 10)
-#ax2.annotate("(b)", xy = (0.5, -0.32), xycoords = "axes fraction", fontweight = 'bold', fontsize = 10)
+ax1.annotate("(a)", xy = (0.5, -0.32), xycoords = "axes fraction", fontweight = 'bold', fontsize = 10)
+ax2.annotate("(b)", xy = (0.5, -0.32), xycoords = "axes fraction", fontweight = 'bold', fontsize = 10)
 
 # saving
 plt.savefig('exports/MaskAndComputedPattern.pdf',
