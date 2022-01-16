@@ -40,36 +40,31 @@ maskArray = np.array(mask)
 #%% Ploting
 fig, (ax1,ax2) = plt.subplots(nrows = 1,
                               ncols = 2, 
-                              tight_layout = True,
-                              figsize = (8, 3)
+                              #tight_layout = True,
+                              figsize = (11, 2.5)
                               )
                               
-
-
 maskPlot = ax1.imshow(maskArray, 
                       cmap = 'gray')
 ax1.set_xlabel(r'$x$ [pixels]')
 ax1.set_ylabel(r'$y$ [pixels]')
 
 
-ax1.text(-200,
-         50,
-         r'(a)',
-         fontsize = 10,
-         fontweight = 'bold'
-         )
-
 twoDplot = ax2.imshow(patternCrop)
 ax2.set_xlabel(r'$x$ [focal units]')
 ax2.set_ylabel(r'$y$ [focal units]')
 
-ax2.text(-9,
-         1.8,
-         r'(b)',
-         fontsize = 10,
-         fontweight = 'bold'
-         )
+# colorbar
+plt.colorbar(twoDplot,
+             shrink = 0.5,
+             pad = 0.025,
+             aspect = 22)
 
+# annotate
+#ax1.annotate("(a)", xy = (0.5, -0.32), xycoords = "axes fraction", fontweight = 'bold', fontsize = 10)
+#ax2.annotate("(b)", xy = (0.5, -0.32), xycoords = "axes fraction", fontweight = 'bold', fontsize = 10)
+
+# saving
 plt.savefig('exports/MaskAndComputedPattern.pdf',
             dpi = 100,
             pad_inches = 0,
