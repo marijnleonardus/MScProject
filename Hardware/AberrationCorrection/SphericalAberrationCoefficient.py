@@ -77,10 +77,9 @@ axZ04.legend(loc = 'upper center')
 axZ44.legend(loc = 'upper left')
 
 # annotate
-axPaper.annotate("a)", xy = (0.1, 0.1), xycoords = "axes fraction", fontweight = 'bold', fontsize = 12)
-axZ04.annotate("b)", xy=(0.1, 0.1), xycoords = "axes fraction", fontweight = 'bold', fontsize = 12)
-axZ44.annotate("c)", xy=(0.1, 0.1), xycoords = "axes fraction", fontweight = 'bold', fontsize = 12)
-
+axPaper.annotate("(a)", xy = (0.455, -0.3), xycoords = "axes fraction", fontweight = 'bold', fontsize = 9)
+axZ04.annotate("(b)", xy = (0.455, -0.3), xycoords = "axes fraction", fontweight = 'bold', fontsize = 9)
+axZ44.annotate("(c)", xy = (0.455, -0.3), xycoords = "axes fraction", fontweight = 'bold', fontsize = 9)
 
 plt.savefig('exports/SphericalAberrationTerms.pdf',
             pad_inches = 0,
