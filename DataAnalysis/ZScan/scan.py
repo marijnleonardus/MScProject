@@ -27,14 +27,16 @@ import scipy.optimize
 # mat file location
 mat_files_location = "./data/0_1astigcorrection0_27spherical/"
 
-lam = 810e-9
+# constants
+lam = 820e-9
 k = 2 * np.pi / lam
 f = 4e-3
 R = 2e-3
 w_i = 2e-3
-magnification = 60
+magnification = 67
 pixel_size = 4.65
 threshold = 0.05
+
 # amount of space to see around the maximum location
 number_spots_expected = 1
 row_cropping_range = 35
@@ -55,7 +57,6 @@ fitting_range = 5
 #%% Functions
 
 # Diffraction theory axial diffraction pattern 
-
 def intensity_defocus(u):
     
     # in terms of dimenionless defocus paramter u = k dz R**2/f**2
@@ -73,7 +74,6 @@ intensity__defocus_normalized = intensity_defocus(dz_microns)
 
 
 # Spot detection
-
 def spot_detection(image):
     spots_LoG = blob_log(image,
                          max_sigma = 30, 
@@ -97,7 +97,6 @@ def spot_detection(image):
     return maximum_locs
 
 # Loads file, crops to defined RoI
-
 def load_crop_RoI_normalize(mat_files_location, filename_list):
     mat_file = scipy.io.loadmat(mat_files_location + filename_list[i] + ".mat")
     
@@ -121,14 +120,11 @@ def load_crop_RoI_normalize(mat_files_location, filename_list):
     return cam_frame
 
 # Fit Gaussian to obtain amplitudes
-
 fit_radial_coordinate = np.linspace(-2, 2, 100)
 
 def gaussian_1D(x_data, amplitude, center, sigma):
-
     exponent = -0.5 * ((x_data - center) / sigma)**2
     gaussian = amplitude * np.exp(exponent)
-    
     return gaussian
 
 
@@ -192,14 +188,11 @@ for i in range(len(filename_list)):
     longitudinal_profile.append(longitudinal)
 
 # Fitted values
-
 fit_matrix = np.array(fit_parameters_list)
 amplitudes_matrix = fit_matrix[:, 0]
 amplitudes_matrix_normalized = amplitudes_matrix / np.max(amplitudes_matrix)
-
 fit_centra = fit_matrix[:, 1]
     
-
 # Convert list of rows to array (2D array: r,z)    
 array = np.transpose(np.array(rows))  
 
@@ -221,16 +214,6 @@ x_longitudinal = np.linspace(-z_dimension / 2,
                              len(filename_list))
 
 #%% fitting
-
-# Fit longituninal_profile
-def gaussian(x, amplitude, x0, sigma):
-    
-    # We define a gaussian to fit the data
-    exponent = -0.5 * (sigma)**(-2) * (x - x0)**2 
-    
-    intensity = amplitude * np.exp(exponent)
-    return intensity
-
 def GaussianAxial(z, amplitude, z0, zR):
     intensity = amplitude / (1 + (z - z0)**2 / zR**2)
     return intensity
@@ -244,14 +227,12 @@ sliced_indices = np.where(
     )
 
 # Fitting, we don't fit the entire plot, just the region around the waist
-
 x_longitudinal_cropped = np.array(x_longitudinal[sliced_indices])
 longitudinal_normalized_cropped = np.array(longitudinal_normalized[sliced_indices])
 
 # Initial guess for fitting; amplitude, center, sigma
-
 fitting_guess = [1, -0.4, 4] 
-# Fitting limited plot range.
+
 # Fits gaussian beam which in axial direction goes as U0/(1 + z^2/zR^2)
 poptAxial, pcovAxial = scipy.optimize.curve_fit(GaussianAxial,
                                                  x_longitudinal_cropped,
@@ -260,11 +241,15 @@ poptAxial, pcovAxial = scipy.optimize.curve_fit(GaussianAxial,
                                                 )
 
 center_x_fit = poptAxial[1]
-
 gaussianAxialFit = GaussianAxial(fit_x, *poptAxial)
 
-#%% First and second plot: Slice of tweezer
- 
+#%% Plotting
+
+# ax1: tweezer side image
+# ax2: axial intensity distribution
+#   - measurement
+#   - fit
+#   - theory result
 fig, (ax1 ,ax2) = plt.subplots(nrows = 2, 
                               ncols = 1, 
                               figsize = (3.5, 3.5*7/5),
@@ -298,18 +283,16 @@ ax1.set_ylabel(r'$r$ [$\mu$m]', usetex = True)
 
 """second plot: the data for the tweezer scan"""
 
-# Longitudinal plot, second plot
+# Longitudinal plot, theory result (blue) and fit
 # Plot against same horizontal coordinate
-
 ax2.grid()
 ax2.errorbar(x_longitudinal - center_x_fit, amplitudes_matrix_normalized, 
             color = 'black',
             fmt = 'o',
             ms = 3,
-            yerr = 0.1 * amplitudes_matrix_normalized
+            yerr = 0.1 * amplitudes_matrix_normalized,
+            label = 'measurement'
             )
-
-# Plots, ticks for second plot
 
 ax2.xaxis.set_major_locator(plt.MultipleLocator(1))
 ax2.xaxis.set_minor_locator(AutoMinorLocator(2))
@@ -317,45 +300,32 @@ ax2.set_xlabel(r'$\delta z$ [$\mu$m]', usetex = True)
 ax2.set_ylabel(r'$I/I_0$', usetex = True)
 
 # only labels on bottom plot
-
 for ax in fig.get_axes():
     ax.label_outer()
-    
-ax2.plot(dz_microns, intensity__defocus_normalized)
+
+# theory result    
+ax2.plot(dz_microns, intensity__defocus_normalized,
+         linewidth = 2,
+         label = 'theory')
+
 ax2.set_xlim(-4.2, 4.2)
 
-# Saving
+# Fit plot
+ax2.plot(fit_x - center_x_fit, gaussianAxialFit,
+         '--',
+         label = 'fit',
+         linewidth = 1.5,
+         color = 'red'
+         )
 
-plt.savefig('exports/AxialImageTweezerScan.pdf',
-            dpi = 200,
-            pad_inches = 0,
-            bbox_inches = 'tight')
+ax.legend()
 
-#%% Second plot: fit plot
+#%% Saving print result
 
-"""third plot. We plot separately because x range is different"""
-fig, ax = plt.subplots(figsize = (4, 3))
-ax.errorbar(x_longitudinal_cropped, longitudinal_normalized_cropped, 
-            color = 'blue',
-            fmt = 'o',
-            ms = 5, 
-            yerr = 0.05 * longitudinal_normalized_cropped
-            )
-
-ax.plot(fit_x, gaussianAxialFit, color = 'red')
-ax.set_xlim(-fitting_range, +fitting_range)
-
-ax.set_xlabel(r'$\delta z$ [$\mu$m]', usetex = True)
-ax.set_ylabel(r'$I/I_0$', usetex = True)
-ax.grid()
-
-# Saving
-
-plt.savefig('exports/FittedRayleigh.pdf',
+plt.savefig('exports/AxialScanCorrected.pdf',
             dpi = 200,
             pad_inches = 0,
             bbox_inches = 'tight')
 
 rayleigh = poptAxial[2]
-
 print('Fitted rayleigh: ' + str(rayleigh))
