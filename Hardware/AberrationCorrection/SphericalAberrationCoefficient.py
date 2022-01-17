@@ -23,7 +23,7 @@ nquartz = 1.44
 nr = n0 / n
 NA = 0.5
 d = 0.5e-3
-deff = d / nquartz
+coefficient = 0.2535 # zernike coefficient as applied onto the SLM
 
 #%% calculation
 
@@ -36,20 +36,52 @@ rho = np.linspace(0, 1, 101)
 # Eq. (7) from Iwaniuk 2007
 # Vol. 19, No. 20 / OPTICS EXPRESS 19407
 
-phi = np.pi * deff * (1 - nr) / wavelength * (3 * rho**4 * NA**4 / 4 * (1 - nr**2)**2)
+# Taking both ^2 and ^4 term of the formula in the paper
+correctionPaper = np.pi * d * (1 - nr) / wavelength * (-1 * rho**2 * NA**2 * (1 - nr**2)
+                                           + 3 * rho**4 * NA**4 / 4 * (1 - nr**2)**2)
+
+# Only taking ^4 term
+Z44 = np.pi * d * (1 - nr) / wavelength * (3/4* rho**4 * NA**4 * (1 - nr**2)**2)
+
+# Expanding in Z00, Z22 and Z40
+wavefront = coefficient - 12.93 * rho**2 + coefficient * rho**4
+Z04 = coefficient * (1 - 6 * rho**2 + 6 * rho**4)
 
 # Divide by 2 pi to get amount of phase shifts
-waves = phi / (2 * np.pi)
+wavesCorrectionPaper = correctionPaper / (2 * np.pi)
+wavesZ04 = Z04 / (2 * np.pi)
+wavesZ44 = Z44 / (2 * np.pi)
 
 #%% plotting, saving
 
-fig, ax = plt.subplots(figsize = (3, 2))
-ax.plot(rho, waves)
+fig, (axPaper, axZ04, axZ44) = plt.subplots(ncols = 3, 
+                               nrows = 1,
+                               tight_layout = True,
+                               figsize = (8, 3))
 
-ax.set_xlabel(r'$r/R$', usetex = True)
-ax.set_ylabel(r'$\phi(r)/2\pi$', usetex = True)
+axPaper.plot(rho, wavesCorrectionPaper, label = r'$\phi(\rho)$')
+axZ04.plot(rho, wavesZ04, label = r'$Z_0^4$ term')
+axZ44.plot(rho, wavesZ44, label = r'$\rho^4$ term')
 
-plt.savefig('exports/SphericalAberrationTerm.pdf',
+# shared y axis labels
+axPaper.set_ylabel(r'$\phi(\rho)/2\pi$', usetex = True)
+
+# x labels
+axPaper.set_xlabel(r'$r/R$', usetex = True)
+axZ04.set_xlabel(r'$r/R$', usetex = True)
+axZ44.set_xlabel(r'$r/R$', usetex = True)
+
+# legend
+axPaper.legend(loc = 'upper right')
+axZ04.legend(loc = 'upper center')
+axZ44.legend(loc = 'upper left')
+
+# annotate
+axPaper.annotate("(a)", xy = (0.455, -0.3), xycoords = "axes fraction", fontweight = 'bold', fontsize = 9)
+axZ04.annotate("(b)", xy = (0.455, -0.3), xycoords = "axes fraction", fontweight = 'bold', fontsize = 9)
+axZ44.annotate("(c)", xy = (0.455, -0.3), xycoords = "axes fraction", fontweight = 'bold', fontsize = 9)
+
+plt.savefig('exports/SphericalAberrationTerms.pdf',
             pad_inches = 0,
             bbox_inches = 'tight',
             dpi = 300)

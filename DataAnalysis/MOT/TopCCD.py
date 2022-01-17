@@ -24,21 +24,22 @@ magnification = 1
 pixel_size = 4.65 #micron
 
 # loading image
-location = 'images/' 
-filename  = 'top_image.bmp'
+location = 'images/overlapTweezer/' 
+filename  = 'top camera.bmp'
  
 # laplacian of gaussian
 nr_max_expected = 1
 threshold = 0.1
 
 # RoI
-cropping_pixels = 100
+cropping_pixels = 20
 
 #%% load image file
 
 def bmp_import(location, filename):
     bmp_file = Image.open(location + filename)
     array = np.array(bmp_file)
+    #array = array[:,:,0]
     return array
     
 image = bmp_import(location, filename)
@@ -47,8 +48,8 @@ image = bmp_import(location, filename)
 
 def RoI_crop(array, cropping_range):
     max_location = blob_log(array,
-                            min_sigma = 2,
-                            max_sigma = 10,
+                            min_sigma = 5,
+                            max_sigma = 15,
                             num_sigma = 5,
                             threshold = threshold
                             )
@@ -60,7 +61,7 @@ def RoI_crop(array, cropping_range):
     
     # RoI size
     max_location_row = int(max_location[:, 1])
-    max_location_col =int( max_location[:, 0])
+    max_location_col = int(max_location[:, 0])
     
     # Crop image to RoI
     RoI = array[
@@ -92,8 +93,6 @@ def plot_image(array):
     plt.locator_params(axis = "x", nbins = markings)
     plt.locator_params(axis = "y", nbins = markings)
     
-    
-
 plot_image(RoI)
 plt.savefig('exports/TopCCDimage.png',
             bbox_inches = 'tight',

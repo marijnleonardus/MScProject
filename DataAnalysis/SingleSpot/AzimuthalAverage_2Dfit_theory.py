@@ -5,12 +5,11 @@ Created on Tue Aug 10 10:41:07 2021
 
 @author: Marijn Venderbosch
 
-This script will compute the azimuthal average around a spot.
-Preferably a single spot so the rings are clearly visible. 
+This script computes for a single spot
+- azimuthal average
+- 2D gaussian fit
 
-It will also plot this azimuthal average, as well as the 2D gaussian fit
-
-Also plots the tweezer spot as a double check
+And compares to result to diffraction theory
 
 """
 
@@ -44,19 +43,19 @@ threshold = 0.2
 number_spots_expected = 1
 
 # mat file
-location = 'images/'
-file_name = '1x1.mat'
+location = 'data/'
+file_name = 'bestone.mat'
 
 # Parameters for theoretical plot
 waist = 2e-3
 aperture_radius = 2e-3
 wavelength = 820e-9
-wavenumber = 2*np.pi / wavelength
+wavenumber = 2 * np.pi / wavelength
 focal_length = 4e-3
 
 # 2D plot zoom size
 plot_range_x = 20
-plot_range_y =30
+plot_range_y = 30
 
 #%% Functions
 
@@ -192,7 +191,7 @@ def azimuthal_average(image, maxima):
         ring = (np.greater(R, m - bin_size) & np.less(R, m + bin_size))
         pixels_inside = image[ring]
         intensity_matrix[index] = np.mean(pixels_inside)
-        index +=1
+        index += 1
     
     intensity_normalized = intensity_matrix / np.max(intensity_matrix)
     return intensity_normalized
@@ -202,7 +201,7 @@ measurement = azimuthal_average(image_cropped, maxima_locations)
 
 #%% numerical integration, theory calculation
 
-""" Integrate diffraciton equation for gaussian waist equal to aperture radisu"""
+""" Integrate diffraction equation for gaussian waist w_i equal to aperture radius R"""
 
 # Radius in focal plane, as well as initializing empty tweezer matrix
 tweezer_matrix = []
@@ -313,7 +312,6 @@ ax2.plot(radial_distance_microns,
         label = r'$w_i \approx R$')
 
 # Plot measurement result
-
 yerr = 0.03 
 ax2.scatter(radial_distance_microns, measurement,
            label = 'measurement', 
@@ -323,9 +321,7 @@ ax2.scatter(radial_distance_microns, measurement,
            )
 
 # Plot Airy theory result
-
-ax2.plot(radial_distance_microns, airy_intensity, label = 'PSF')
-
+ax2.plot(radial_distance_microns, airy_intensity, label = r'$w_i \gg R$')
 ax2.set_xlabel(r'$r$ [$\mu$m]', usetex = True)
 ax2.set_ylabel(r'$I/I_0$', usetex = True)
 ax2.legend()
@@ -338,26 +334,20 @@ plt.savefig('exports/AzimuthalAverageSpotZoomed.pdf',
             bbox_inches = 'tight')
 
 
-
-
 #%% 2D fit
 
 # Define 2D gaussian fit function. Formula is in thesis
-
 def two_D_gaussian(X, amplitude, x0, y0, sigma_x, sigma_y):
     
     # We define the function to fit: a particular example of a 2D gaussian
     # indepdent variables x,y are passed as a single variable X (curve_fit only 
     # accepts 1D fitting, therefore the result is raveled 
-    
     x, y = X 
     exponent = -0.5 * (sigma_x)**(-2) * (x - x0)**2 - 0.5 * (sigma_y)**(-2) * (y - y0)**2
     intensity = amplitude * np.exp(exponent)
-    
     return intensity.ravel()
 
 # Crop tweezer spot to RoI to fit. RoI is in the O(10) pixels
-
 def crop_RoI(fit_image, maxima_locations, cropping_range):
     
     # Store coordinates where maximum was detected 
@@ -384,9 +374,7 @@ def crop_RoI(fit_image, maxima_locations, cropping_range):
     
 img_RoI, img_RoI_raveled = crop_RoI(image_cropped, maxima_locations, cropping_range)
  
-
 # Fit needs 2D meshgrid
-
 def twoD_mesh(cropping_range):
     
     # Pixel 1D matrices (discreet)
@@ -396,7 +384,6 @@ def twoD_mesh(cropping_range):
     
     # 2D matrix
     x, y = np.meshgrid(pixels_x, pixels_y)
-    
     return x, y
 
 pixels_mesh_x, pixels_mesh_y = twoD_mesh(cropping_range)
@@ -449,8 +436,6 @@ center_j = plt.Circle((popt[1] ,
 ax3.add_patch(center_j)
 
 # We are interested in the quality of the fit: the R_squared. 
-
-
 def R_squared(pixels_mesh_x, pixels_mesh_y, cropping_range, image):
     
     # residuals = ydata - f(xdata, *popt) where popt are fit 
@@ -488,7 +473,6 @@ ax.scatter3D(pixels_mesh_x, pixels_mesh_y, img_RoI,
              )
 
 # Plot gaussian fit 
-
 peak = two_D_gaussian((pixels_mesh_x, pixels_mesh_y), *popt).reshape(2 * cropping_range + 1, 2 * cropping_range + 1)
 im = ax.plot_surface(pixels_mesh_x, pixels_mesh_y, peak,
                 rstride = 1,
@@ -515,9 +499,9 @@ ax.set_zlabel(r'$G(x,y)/G_0$',
               labelpad = -1,
               usetex = True)
 
-ax.view_init(20, 35)
+ax.view_init(20, 40)
 
-plt.savefig('exports/3DSpotFitGaussian.pdf', 
+plt.savefig('exports/3DSpotFitGaussianSmaller.pdf', 
             dpi = 200, 
             pad_inches = 0,
             bbox_inches = 'tight')

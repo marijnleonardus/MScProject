@@ -111,16 +111,6 @@ ax1.tick_params(direction = 'in')
 ax1.set_xlim(0, 8.2)
 ax1.set_ylim(0, 1.05)
 
-# Label
-ax1.text(0.85, 
-         0.95, 
-         'a)', 
-         transform = ax1.transAxes,
-         fontsize = 12,
-         va = 'top',
-      )
-
-
 # Tick label frequency
 
 loc_x = plticker.MultipleLocator(base = 2) # this locator puts ticks at regular intervals
@@ -135,7 +125,7 @@ im = ax2.imshow(intensity_2D,
                 # Labels are in dimensionless units not in pixels
                 extent = [-plot_range, plot_range,
                           -plot_range, plot_range],
-                cmap = 'jet')
+                cmap = 'viridis')
 ax2.axis('off')
 
 # Tick label frequency
@@ -150,20 +140,19 @@ ax2.yaxis.set_major_locator(loc_y_2D)
 
 divider = make_axes_locatable(ax2)
 cax = divider.append_axes("right",
+                          aspect = 20,
                           size = "8%",
-                          pad = 0.1)
+                          pad = 0.05)
+plt.colorbar(im,
+             cax=cax)
 
-# Label 
-ax2.text(0.8, 
-         0.95, 
-         'b)', 
-         transform = ax2.transAxes,
-         fontsize = 12,
-         va = 'top',
-         color = 'white'
-      )
 
-plt.colorbar(im, cax=cax)
+
+# annotate
+ax1.annotate("(a)", xy = (0.8, 0.85), xycoords = "axes fraction", fontweight = 'bold', fontsize = 9)
+ax2.annotate("(b)", xy = (0.8, 0.85), xycoords = "axes fraction", fontweight = 'bold', fontsize = 9, color = 'white')
+
+
 
 #%% Showing, saving
 
