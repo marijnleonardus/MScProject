@@ -54,14 +54,14 @@ PSF_intensity = ideal_PSF(z_data)
 #%% Plotting
 
 # 1D plot of theory vs measurement
-fig, ax = plt.subplots(figsize = (4, 2.5))
+fig, ax = plt.subplots(figsize = (4.5, 2.2))
 plt.grid()
 
 # Rescale x axis to microns
 dz_microns = dz * 10e5
 
 plt.plot(dz_microns, z_intensity,
-         label = r'$w_i \sim R$'
+         label = r'$w_i = R$'
          )
 
 plt.plot(dz_microns, PSF_intensity, 
