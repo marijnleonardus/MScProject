@@ -50,7 +50,7 @@ plot_range = 7e-6
 dz = np.linspace(-plot_range, plot_range, 1000)
 
 # Only fit around waist, in microns
-fitting_range = 4
+fitting_range = 5
 
 #%% Functions
 
@@ -251,21 +251,15 @@ longitudinal_normalized_cropped = np.array(longitudinal_normalized[sliced_indice
 # Initial guess for fitting; amplitude, center, sigma
 
 fitting_guess = [1, -0.4, 4] 
-# Fitting limited plot range
-popt, pcov = scipy.optimize.curve_fit(gaussian,
-                                      x_longitudinal_cropped,
-                                      longitudinal_normalized_cropped, 
-                                      p0 = fitting_guess)
-
+# Fitting limited plot range.
+# Fits gaussian beam which in axial direction goes as U0/(1 + z^2/zR^2)
 poptAxial, pcovAxial = scipy.optimize.curve_fit(GaussianAxial,
                                                  x_longitudinal_cropped,
                                                  longitudinal_normalized_cropped, 
                                                  p0 = fitting_guess
                                                 )
 
-center_x_fit = popt[1]
-
-gaussian_fitted = gaussian(fit_x, *popt)
+center_x_fit = poptAxial[1]
 
 gaussianAxialFit = GaussianAxial(fit_x, *poptAxial)
 
@@ -350,7 +344,6 @@ ax.errorbar(x_longitudinal_cropped, longitudinal_normalized_cropped,
 
 ax.plot(fit_x, gaussianAxialFit, color = 'red')
 ax.set_xlim(-fitting_range, +fitting_range)
-ax.set_ylim(0.6, 1.1)
 
 ax.set_xlabel(r'$\delta z$ [$\mu$m]', usetex = True)
 ax.set_ylabel(r'$I/I_0$', usetex = True)
@@ -363,8 +356,6 @@ plt.savefig('exports/FittedRayleigh.pdf',
             pad_inches = 0,
             bbox_inches = 'tight')
 
-waist = 2 * popt[2]
-rayleigh = np.sqrt(2 * np.log(2)) * popt[2]
+rayleigh = poptAxial[2]
 
-print('Fitted waist: '+ str(waist))
 print('Fitted rayleigh: ' + str(rayleigh))
