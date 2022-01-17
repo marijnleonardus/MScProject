@@ -120,15 +120,15 @@ force_plus, force_minus, force_total = forces(det, s, omega_d)
 
 #%% Plotting 
 
-fig, (ax1, ax2) = plt.subplots(nrows=1, 
+fig, (ax2, ax1) = plt.subplots(nrows=1, 
                                ncols=2, 
                                num="Expression",
                                figsize=(6.5, 2.75),
                                sharey = True)
 
-ax2.grid()
+ax1.grid()
 
-ax2.plot(x * (alpha / gamma), 
+ax1.plot(x * (alpha / gamma), 
          rateeq.profile['Fx'].F[0, int(np.ceil(x.shape[0]/2)), :] / gamma / k)
 
 # Heuristic equation plot, commented for now
@@ -136,30 +136,30 @@ ax2.plot(x * (alpha / gamma),
 #ax1.plot(x*(alpha/gamma), (s/(1+2*s + 4*(det-alpha*x/gamma)**2) - s/(1+2*s + 4*(det+alpha*x/gamma)**2))/2, 'k-', linewidth=0.5)
 
 
-ax2.set_ylabel(r'F [$\hbar k \gamma$]', usetex = True, family = 'serif')
-ax2.set_xlabel('$z \\ [\mu_B (\partial B/\partial z) / \hbar \gamma]$', usetex = True)
-ax2.set_xlim((-10, 10))
-ax2.xaxis.set_minor_locator(MultipleLocator(1))
-ax2.yaxis.set_major_locator(MultipleLocator(.1))
+ax2.set_ylabel(r'$F [\hbar k \gamma$]', usetex = True, family = 'serif')
+ax1.set_xlabel('$z \\ [\mu_B (\partial B/\partial z) / \hbar \gamma]$', usetex = True)
+ax1.set_xlim((-10, 10))
+ax1.xaxis.set_minor_locator(MultipleLocator(1))
+ax1.yaxis.set_major_locator(MultipleLocator(.1))
 
 
 # Second plot: velocity profile
 
-ax1.grid()
+ax2.grid()
 
-ax1.plot(omega_d, force_plus, 
+ax2.plot(omega_d, force_plus, 
         label = r'$F^{+}$',
         linewidth = 1.5,
         linestyle = '--',
         color = 'blue')
 
-ax1.plot(omega_d, force_minus,
+ax2.plot(omega_d, force_minus,
         label = r'$F^{-}$',
         linewidth = 1.5,
         linestyle = '--',
         color = 'red')
 
-ax1.plot(omega_d, force_total,
+ax2.plot(omega_d, force_total,
         label = r'$F^{+}+F^{-}$',
         linewidth = 1.5,
         linestyle = '-',
@@ -170,12 +170,12 @@ plt.savefig('SpatialForceMOT.pdf',
             pad_inches = 0,
             bbox_inches = 'tight')
 
-ax1.set_xlabel(r'v [$\gamma/k$]', usetex = True, family = 'serif')
-ax1.xaxis.set_minor_locator(MultipleLocator(1))
+ax2.set_xlabel(r'$v [\gamma/k$]', usetex = True, family = 'serif')
+ax2.xaxis.set_minor_locator(MultipleLocator(1))
 
-ax1.set_xlim(-5, 5)
+ax2.set_xlim(-5, 5)
 
-ax1.legend()
+ax2.legend()
 
 # Saving
 
