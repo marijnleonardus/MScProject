@@ -456,7 +456,7 @@ stddev_trap_depth_unity = stddev_trap_depth / mu_trap_depth
 # Number of bins: increase for more spots. Takes square root of number of spots and
 # rounds to nearest integer.
 n_bins = int(np.sqrt(amount_spots))
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize = (6, 2.5))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize = (5.8, 2.4))
 
 
 # Plot histograms: normalized using 'density' option
@@ -522,7 +522,7 @@ ax1.set_xlabel(r'$w_0$ $(1/e^2$ radius) [$\mu$m]', usetex = True)
 ax1.set_yticklabels([])
 ax1.xaxis.set_major_locator(MultipleLocator(0.05))
 ax1.xaxis.set_minor_locator(MultipleLocator(0.01))
-ax1.yaxis.set_major_locator(MultipleLocator(1.69))
+ax1.yaxis.set_major_locator(MultipleLocator(1.68))
 ax1.set_ylabel('Counts [a.u.]')
 
 ax2.set_xlabel(r'$U_0/\left\langle U_0 \right\rangle$', usetex = True)
@@ -532,8 +532,8 @@ ax2.xaxis.set_minor_locator(MultipleLocator(0.05))
 ax2.yaxis.set_major_locator(MultipleLocator(0.5))
 
 # Annotate
-ax1.annotate(r'$(0.89\pm0.03)$ $\mu$m', 
-               xy = (0.6, 0.9),
+ax1.annotate(r'$(0.89\pm0.03)$ $\mu m$', 
+               xy = (0.48, 0.9),
                xycoords = "axes fraction", 
                fontweight = 'bold',
                color = 'r',
