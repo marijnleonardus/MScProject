@@ -54,8 +54,8 @@ wavenumber = 2 * np.pi / wavelength
 focal_length = 4e-3
 
 # 2D plot zoom size
-plot_range_x = 20
-plot_range_y = 30
+plot_range_x = 12
+plot_range_y = 23
 
 #%% Functions
 
@@ -253,7 +253,6 @@ fig, (ax1, ax2) = plt.subplots(nrows = 1,
                                figsize = (7.9, 2.5))
 
 # Imshow plot
-
 def crop_center(img, cropx, cropy):
 
     startx = int(maxima_locations[0]) - cropx//2
@@ -309,7 +308,7 @@ radial_distance_microns = radial_distance * 1e6
 
 ax2.plot(radial_distance_microns,
         tweezer_intensity,
-        label = r'$w_i \approx R$')
+        label = r'$w_i = R$')
 
 # Plot measurement result
 yerr = 0.03 
@@ -327,6 +326,9 @@ ax2.set_ylabel(r'$I/I_0$', usetex = True)
 ax2.legend()
 ax2.set_xlim(0, 2)
 
+# Annotate
+ax1.annotate("(a)", xy = (0.05, 0.1), xycoords = "axes fraction", fontweight = 'bold', fontsize = 9, color = 'white')
+ax2.annotate("(b)", xy = (0.05, 0.1), xycoords = "axes fraction", fontweight = 'bold', fontsize = 9)
 
 plt.savefig('exports/AzimuthalAverageSpotZoomed.pdf',
             dpi = 200,
@@ -405,10 +407,9 @@ fig3, ax3 = plt.subplots(figsize = (4, 4))
 # Sigma radial direction
 sigma_r_pixels = 0.5 * (popt[3] + popt[4])
 
-""""plotting"""
+#%% Plotting
 
 # Plot images around (0,0) instead of origin in upper left corner.
- 
 extent = [-cropping_range ,cropping_range ,
           -cropping_range, cropping_range]
 
@@ -453,12 +454,6 @@ def R_squared(pixels_mesh_x, pixels_mesh_y, cropping_range, image):
 
 r_squared = R_squared(pixels_mesh_x, pixels_mesh_y, cropping_range, img_RoI)
 
-# Print result
-print("R-squared is: " + str(r_squared))
-
-waist = 2 * sigma_r_pixels * 4.65 / magnification
-print("Waist is: " + str(waist))
-
 """plot 3D fit result in 3D plot"""
 
 fig =plt.figure(figsize = (5, 4))
@@ -500,6 +495,13 @@ ax.set_zlabel(r'$G(x,y)/G_0$',
               usetex = True)
 
 ax.view_init(20, 40)
+
+#%% Saving, printing
+
+print("R-squared is: " + str(r_squared))
+
+waist = 2 * sigma_r_pixels * 4.65 / magnification
+print("Waist is: " + str(waist))
 
 plt.savefig('exports/3DSpotFitGaussianSmaller.pdf', 
             dpi = 200, 
