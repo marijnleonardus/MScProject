@@ -231,6 +231,10 @@ def gaussian(x, amplitude, x0, sigma):
     intensity = amplitude * np.exp(exponent)
     return intensity
 
+def GaussianAxial(z, amplitude, z0, zR):
+    intensity = amplitude / (1 + (z - z0)**2 / zR**2)
+    return intensity
+
 # Fitting x variable, more accurate
 fit_x = np.linspace(-2 / 3 * z_dimension, 2 / 3 * z_dimension, 100)
 
@@ -253,9 +257,17 @@ popt, pcov = scipy.optimize.curve_fit(gaussian,
                                       longitudinal_normalized_cropped, 
                                       p0 = fitting_guess)
 
+poptAxial, pcovAxial = scipy.optimize.curve_fit(GaussianAxial,
+                                                 x_longitudinal_cropped,
+                                                 longitudinal_normalized_cropped, 
+                                                 p0 = fitting_guess
+                                                )
+
 center_x_fit = popt[1]
 
 gaussian_fitted = gaussian(fit_x, *popt)
+
+gaussianAxialFit = GaussianAxial(fit_x, *poptAxial)
 
 #%% First and second plot: Slice of tweezer
  
@@ -328,7 +340,7 @@ plt.savefig('exports/AxialImageTweezerScan.pdf',
 #%% Second plot: fit plot
 
 """third plot. We plot separately because x range is different"""
-fig, ax = plt.subplots(figsize = (4,3))
+fig, ax = plt.subplots(figsize = (4, 3))
 ax.errorbar(x_longitudinal_cropped, longitudinal_normalized_cropped, 
             color = 'blue',
             fmt = 'o',
@@ -336,7 +348,7 @@ ax.errorbar(x_longitudinal_cropped, longitudinal_normalized_cropped,
             yerr = 0.05 * longitudinal_normalized_cropped
             )
 
-ax.plot(fit_x, gaussian_fitted, color = 'red')
+ax.plot(fit_x, gaussianAxialFit, color = 'red')
 ax.set_xlim(-fitting_range, +fitting_range)
 ax.set_ylim(0.6, 1.1)
 
