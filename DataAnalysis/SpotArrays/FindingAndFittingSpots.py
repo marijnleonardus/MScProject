@@ -456,7 +456,7 @@ stddev_trap_depth_unity = stddev_trap_depth / mu_trap_depth
 # Number of bins: increase for more spots. Takes square root of number of spots and
 # rounds to nearest integer.
 n_bins = int(np.sqrt(amount_spots))
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize = (5.8, 2.4))
+fig, (ax1) = plt.subplots(1, 1, figsize = (2.9, 2.4))
 
 
 # Plot histograms: normalized using 'density' option
@@ -469,26 +469,17 @@ ax1.hist(beamwidth_microns,
          label = 'histogram'
          )
 
-ax2.hist(trapdepth_matrix_unity, 
-         bins = n_bins,
-         #hatch = '/',
-         alpha = 0.7,
-         edgecolor = 'black',
-         density = True
-         )
-
 # Get same limits for Gausian as plot range
 xmin_beamwidth, xmax_beamwidth = ax1.get_xlim()
-xmin_trapdepth, xmax_trapdepth = ax2.get_xlim()
+
 
 # Get a stepsize for the Normal distribution. 10^2 should do
 number_steps = 100
 x_beamwidth = np.linspace(xmin_beamwidth, xmax_beamwidth, number_steps)
-x_trapdepth = np.linspace(xmin_trapdepth, xmax_trapdepth, number_steps)
 
 # Generate the normal distribution data using the norm.pdf function from scipy.stat
 normal_distribution_beamwidth = norm.pdf(x_beamwidth, mu_beam_width, stddev_beam_width)
-normal_distribution_trapdepth = norm.pdf(x_trapdepth, mu_trap_depth_unity, stddev_trap_depth_unity)
+
 
 # We want to use the result in the titles. But there are too many digits. 
 # Round to 2 significant digits.
@@ -512,10 +503,6 @@ ax1.plot(x_beamwidth, normal_distribution_beamwidth,
          label = 'normal distribution'
          )
 
-ax2.plot(x_trapdepth, normal_distribution_trapdepth, 
-         'r--',
-         alpha = 0.8,
-         linewidth = 2)
 
 # Edit labels
 ax1.set_xlabel(r'$w_0$ $(1/e^2$ radius) [$\mu$m]', usetex = True)
@@ -525,12 +512,6 @@ ax1.xaxis.set_minor_locator(MultipleLocator(0.01))
 ax1.yaxis.set_major_locator(MultipleLocator(1.68))
 ax1.set_ylabel('Counts [a.u.]')
 
-ax2.set_xlabel(r'$U_0/\left\langle U_0 \right\rangle$', usetex = True)
-ax2.set_yticklabels([])
-ax2.xaxis.set_major_locator(MultipleLocator(0.1))
-ax2.xaxis.set_minor_locator(MultipleLocator(0.05))
-ax2.yaxis.set_major_locator(MultipleLocator(0.5))
-
 # Annotate
 ax1.annotate(r'$(0.89\pm0.03)$ $\mu m$', 
                xy = (0.48, 0.9),
@@ -538,6 +519,42 @@ ax1.annotate(r'$(0.89\pm0.03)$ $\mu m$',
                fontweight = 'bold',
                color = 'r',
                fontsize = 9)
+
+
+# Save plot
+plt.savefig('exports/WaistHistogram.pdf', 
+            dpi = 300,
+            pad_inches = 0,
+            bbox_inches = 'tight')
+
+fig, (ax2) = plt.subplots(1, 1, figsize = (2.9, 2.4))
+
+
+ax2.hist(trapdepth_matrix_unity, 
+         bins = n_bins,
+         #hatch = '/',
+         alpha = 0.7,
+         edgecolor = 'black',
+         density = True
+         )
+
+xmin_trapdepth, xmax_trapdepth = ax2.get_xlim()
+x_trapdepth = np.linspace(xmin_trapdepth, xmax_trapdepth, number_steps)
+
+normal_distribution_trapdepth = norm.pdf(x_trapdepth, mu_trap_depth_unity, stddev_trap_depth_unity)
+
+ax2.plot(x_trapdepth, normal_distribution_trapdepth, 
+         'r--',
+         alpha = 0.8,
+         linewidth = 2)
+
+ax2.set_xlabel(r'$U_0/\left\langle U_0 \right\rangle$', usetex = True)
+ax2.set_yticklabels([])
+ax2.xaxis.set_major_locator(MultipleLocator(0.1))
+ax2.xaxis.set_minor_locator(MultipleLocator(0.05))
+ax2.yaxis.set_major_locator(MultipleLocator(0.5))
+
+
 
 ax2.annotate(r'$(1.00\pm0.10)$', 
                xy = (0.6, 0.9),
@@ -549,10 +566,7 @@ ax2.annotate(r'$(1.00\pm0.10)$',
 #fig.legend(loc='upper right', bbox_to_anchor=(0.115, 1.03))
 
 # Save plot
-plt.savefig('exports/FittedHistograms.pdf', 
+plt.savefig('exports/DepthHistogram.pdf', 
             dpi = 300,
             pad_inches = 0,
             bbox_inches = 'tight')
-
-# Show all plots
-plt.show()
