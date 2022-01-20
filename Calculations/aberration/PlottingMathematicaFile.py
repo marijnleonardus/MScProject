@@ -55,7 +55,7 @@ fig, (ax1, ax2, ax3) = plt.subplots(ncols = 3,
                                figsize = (8, 3))
 
 ax1.plot(t, wavesGlass, label = r'full aberration')
-ax2.plot(t, wavesCorrected, label = r'correction error')
+ax2.plot(t, wavesCorrected, label = r'mismatch $\delta \phi$')
 ax3.plot(rho, Z04polynomial, label = r'only $R_4^0$')
 
 
