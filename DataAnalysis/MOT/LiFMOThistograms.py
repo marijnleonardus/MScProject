@@ -29,7 +29,9 @@ magnification = 0.5
 #%%importing data
 
 # bmp file containing MOT image
-image = Image.open('images/gain1exp10_2.bmp')
+file_location = 'U:/KAT1/Images/MOT Images/11 5 mot back after new coils/MOT Images 5 November'
+file_name = '10ms_gain1.bmp'
+image = Image.open(file_location + str('/') + file_name)
 array = np.array(image) 
 
 # Finding center MOT

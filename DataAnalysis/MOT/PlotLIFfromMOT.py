@@ -12,6 +12,7 @@ Also exports sum over rows and columms and fits a Voigt profile through it
 """
 
 #%% Imports
+
 import matplotlib.pyplot as plt
 from PIL import Image
 import numpy as np
@@ -23,13 +24,17 @@ from matplotlib.ticker import (MultipleLocator, FormatStrFormatter,
 
 
 #%% Variables
-cropping_range = 45 # pixels
+
+cropping_range = 60 # pixels
 pixel_size = 4.65e-6 #microns
-magnification = 0.78      
+magnification = 0.5     
 
 #%%importing data
+
 # bmp file containing MOT image
-image = Image.open('images/top/gain1exp10_2.bmp')
+file_location = 'U:/KAT1/Images/MOT Images/2022-01-12'
+file_name = 'MOT_8.bmp'
+image = Image.open(file_location + str('/') + file_name)
 array = np.array(image) 
 
 # Finding center MOT
@@ -81,24 +86,24 @@ figSum, (axRow, axCol) = plt.subplots(nrows = 1,
                                       figsize = (6,3))
 # Grid, ticks
 axRow.grid()
-axRow.xaxis.set_major_locator(MultipleLocator(0.1))
-axRow.xaxis.set_minor_locator(MultipleLocator(0.05))
+axRow.xaxis.set_major_locator(MultipleLocator(0.2))
+axRow.xaxis.set_minor_locator(MultipleLocator(0.1))
 
 axCol.grid()
-axCol.xaxis.set_major_locator(MultipleLocator(0.1))
-axCol.xaxis.set_minor_locator(MultipleLocator(0.05))
+axCol.xaxis.set_major_locator(MultipleLocator(0.2))
+axCol.xaxis.set_minor_locator(MultipleLocator(0.1))
 
 # Sum over rows
 axRow.scatter(RowRange,
               HistRowsNorm,
-              s = 15)
+              s = 10)
 axRow.set_xlabel(r'$x$ [mm]')
 axRow.set_ylabel(r'Normalized counts [a.u.]')
 
 # Sum over columns
 axCol.scatter(ColRange,
               HistColsNorm,
-              s = 15)
+              s = 10)
 axCol.set_xlabel(r'$y$ [mm]')
 
 # Plot fit
@@ -110,7 +115,7 @@ axCol.plot(ColRange,
            color = 'red')
 
 # Plot fits
-plt.savefig('exports/FitTop.pdf',
+plt.savefig('exports/LorenzianFit.pdf',
             dpi = 300,
             pad_inches = 0,
             bbox_inches= 'tight')
@@ -125,7 +130,7 @@ img = ax.imshow(RoI_normalized,
                 interpolation = 'nearest',
                 origin = 'lower',
                 vmin = 0.)
-img.set_cmap('jet')
+img.set_cmap('magma')
 ax.axis('off')
 
 # Colorbar
@@ -149,14 +154,14 @@ scale_bar = AnchoredSizeBar(ax.transData,
 ax.add_artist(scale_bar)
 
 #%% Saving
-plt.savefig('exports/MOTfluoresenceTop.pdf',
+plt.savefig('exports/MOTfluoresence.pdf',
             dpi = 300,
             pad_inches = 0,
             bbox_inches= 'tight')
 
-FWHM_row = abs(poptRows[3])
-FWHM_col = poptCols[3]
+FWHM_row = np.round(abs(poptRows[3]),3)
+FWHM_col = np.round(abs(poptCols[3]),3)
 
-print('FWHM (rows) is: ' + str(FWHM_row) + ' um')
-print('FWHM (columns) is: ' + str(FWHM_col) + ' um')
+print('FWHM (rows) is: ' + str(FWHM_row) + ' mm')
+print('FWHM (columns) is: ' + str(FWHM_col) + ' mm')
 
