@@ -17,8 +17,8 @@ import numpy as np
 mRb = 87 * atomic_mass
 
 # Dipole trap
-power = 1.2e-3 #mW
-waist = 0.8e-6 # m
+power = 5e-3 #mW
+waist = 0.9e-6 # m
 rayleigh = 3.6e-6 #m
 wavelength = 820e-9 # m
 

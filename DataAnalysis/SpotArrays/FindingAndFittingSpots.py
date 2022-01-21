@@ -27,11 +27,11 @@ from matplotlib.ticker import (MultipleLocator,
 #%% Variables
 
 # Number of spots that we make, to check if spot detection worked
-number_spots_expected = 49
+number_spots_expected = 9*9
 # Location of .mat data file
-mat_file_location = 'files/10 4 adjusted spacing/7x7.mat'
+mat_file_location = 'files/10 4 adjusted spacing/9x9.mat'
 # Threshold on how sensitive spot detection is
-threshold = 0.2
+threshold = 0.15
 # How many pixels do we crop around the spot maxima locations
 cropping_range = 5
 # magnification from newport objective. This is uncalibrated. 
@@ -59,8 +59,8 @@ def load_and_save(mat_file):
     cam_y_max = int(mat_file['cam_y_max'])
     
     # Cropping the array using the provided coordinates
-    #cam_frame_cropped = cam_frame[cam_x_min : cam_x_max , cam_y_min : cam_y_max]
-    cam_frame_cropped = cam_frame[200 : 800, 50 : 650]
+    cam_frame_cropped = cam_frame[cam_x_min : cam_x_max , cam_y_min : cam_y_max]
+    #cam_frame_cropped = cam_frame[100 : 900, 0 : 700]
     
     # Save cropped frame as numpy array
     np.save('files/cam_frame_array_cropped', cam_frame_cropped)
@@ -88,7 +88,7 @@ fig, (axCam,axLoG) = plt.subplots(ncols = 2,
                                   figsize = (7.7, 3.4))
 
 axCam.imshow(image_normalized, 
-             cmap = 'gray'
+             cmap = 'jet'
           #cmap = 'gray'
           )    
    
@@ -393,42 +393,42 @@ max_Gauss_locations_subpixels = store_max_peaks_subpixel(max_Gauss_locations_lis
 #%% Spacing calculation: calculate spacing in x and y
 
 # Dimension: array is d x d where d is dimension
-dimension = int(np.sqrt(amount_spots))
+# dimension = int(np.sqrt(amount_spots))
 
-def spacing_calculator(locs):
-    # Initialize empty matices. xdif is initially longer but later stuff will be omitted          
+# def spacing_calculator(locs):
+#     # Initialize empty matices. xdif is initially longer but later stuff will be omitted          
 
-    x_spacing_overfill = np.zeros(amount_spots - 1)
-    y_spacing = np.zeros(amount_spots - dimension)
+#     x_spacing_overfill = np.zeros(amount_spots - 1)
+#     y_spacing = np.zeros(amount_spots - dimension)
     
-    # Compute euclidean space between iterative points
-    for k in range(amount_spots - 1):
-        x_spacing_overfill[k] = np.sqrt((locs[k + 1, 0] - locs[k, 0])**2 + (locs[k + 1, 1] - locs[k, 1])**2)
+#     # Compute euclidean space between iterative points
+#     for k in range(amount_spots - 1):
+#         x_spacing_overfill[k] = np.sqrt((locs[k + 1, 0] - locs[k, 0])**2 + (locs[k + 1, 1] - locs[k, 1])**2)
     
-    # x_spacing_overfill contains too many rows. As we jump to the next row in the array the calculation doesnt
-    # make sense. For a 3x3 array e.g. we remove row 2, 5, 8 using np.delete()
-    x_spacing = np.delete(x_spacing_overfill, list(range(2, x_spacing_overfill.shape[0], 3)), axis = 0)
+#     # x_spacing_overfill contains too many rows. As we jump to the next row in the array the calculation doesnt
+#     # make sense. For a 3x3 array e.g. we remove row 2, 5, 8 using np.delete()
+#     x_spacing = np.delete(x_spacing_overfill, list(range(2, x_spacing_overfill.shape[0], 3)), axis = 0)
         
-    # y_spacing does contain the right amount, we just skip the calculation over the last row
-    # So we decrease the stepper by the dimension size
-    for k in range(amount_spots - dimension):
-        y_spacing[k] = np.sqrt((locs[k + 3, 0] - locs[k, 0])**2 + (locs[k + 3, 1] - locs[k, 1])**2)
+#     # y_spacing does contain the right amount, we just skip the calculation over the last row
+#     # So we decrease the stepper by the dimension size
+#     for k in range(amount_spots - dimension):
+#         y_spacing[k] = np.sqrt((locs[k + 3, 0] - locs[k, 0])**2 + (locs[k + 3, 1] - locs[k, 1])**2)
         
-    # convert magnification to physical size
-    x_spacing_microns = x_spacing * pixel_size_microns  / magnification
-    y_spacing_microns = y_spacing * pixel_size_microns / magnification
+#     # convert magnification to physical size
+#     x_spacing_microns = x_spacing * pixel_size_microns  / magnification
+#     y_spacing_microns = y_spacing * pixel_size_microns / magnification
     
-    return x_spacing_microns, y_spacing_microns
+#     return x_spacing_microns, y_spacing_microns
         
-# Call function. Save result in arrays x_spacing and y_spacing respectively 
-x_spacing_microns, y_spacing_microns = spacing_calculator(max_Gauss_locations_subpixels)
+# # Call function. Save result in arrays x_spacing and y_spacing respectively 
+# x_spacing_microns, y_spacing_microns = spacing_calculator(max_Gauss_locations_subpixels)
 
-# Calculate average and spread in spacings
-mu_x_spacing_microns, stddev_x_spacing_microns = norm.fit(x_spacing_microns)
-mu_y_spacing_microns, stddev_y_spacing_microns = norm.fit(y_spacing_microns)  
+# # Calculate average and spread in spacings
+# mu_x_spacing_microns, stddev_x_spacing_microns = norm.fit(x_spacing_microns)
+# mu_y_spacing_microns, stddev_y_spacing_microns = norm.fit(y_spacing_microns)  
 
-# Calculate ratio between x and y spacing 
-ratio_x_y_spacing = mu_y_spacing_microns / mu_x_spacing_microns   
+# # Calculate ratio between x and y spacing 
+# ratio_x_y_spacing = mu_y_spacing_microns / mu_x_spacing_microns   
 
 #%% Histograms of distributions
 """The following script will plot histograms of the obtained beamwidths and 
