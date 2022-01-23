@@ -56,6 +56,7 @@ fig.tight_layout(pad = -0.5)
 ax.set_xlim(0, 1300)
 axzoom.set_xlim(1300, 1650)
 
+ax.set_ylim(-7, 2)
 # grey vertical line
 axzoom.axvline(motLoad,
            color = 'grey',
