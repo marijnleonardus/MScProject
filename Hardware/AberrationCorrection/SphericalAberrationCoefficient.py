@@ -22,8 +22,8 @@ n = 1.51
 nquartz = 1.44
 nr = n0 / n
 NA = 0.5
-d = 0.33e-3
-coefficient = 0.2535 # zernike coefficient as applied onto the SLM
+d = 0.5e-3
+coefficient = 0.22 # zernike coefficient as applied onto the SLM
 
 #%% calculation
 
