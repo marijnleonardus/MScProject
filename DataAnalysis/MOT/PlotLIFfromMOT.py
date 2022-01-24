@@ -19,21 +19,25 @@ import numpy as np
 from numpy import unravel_index
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 from scipy.optimize import curve_fit
-from matplotlib.ticker import (MultipleLocator, FormatStrFormatter,
-                               AutoMinorLocator)
-
+from matplotlib.ticker import MultipleLocator
+import matplotlib.gridspec as gridspec
+from scipy.odr import ODR, Model, RealData
 
 #%% Variables
 
-cropping_range = 60 # pixels
+cropping_range = 50 # pixels
 pixel_size = 4.65e-6 #microns
 magnification = 0.5     
+
+# gridspec setup
+w = 330
+h = 20000
 
 #%%importing data
 
 # bmp file containing MOT image
 file_location = 'U:/KAT1/Images/MOT Images/2022-01-12'
-file_name = 'MOT_8.bmp'
+file_name = 'MOT_10.bmp'
 image = Image.open(file_location + str('/') + file_name)
 array = np.array(image) 
 
@@ -46,104 +50,44 @@ RoI = array[indices[0] - cropping_range : indices[0] + cropping_range,
             indices[1] - cropping_range : indices[1] + cropping_range]
 
 # Normalize
-RoI_normalized = RoI / np.max(RoI)
-
-# Set up x,y variables from 2D imshow plot defined as twice the cropping range
-# Multiply with magnification to get real size instead of pixels
-# Multiply by 1000 to plot in mm instead of m
-RowRange = np.linspace(-cropping_range, cropping_range - 1, 2*cropping_range) * pixel_size / magnification * 10e2
-ColRange = np.linspace(-cropping_range, cropping_range - 1, 2*cropping_range) * pixel_size / magnification * 10e2
+RoI = RoI / np.max(RoI)
 
 # Compute histograms with coordinates x,y
-HistRows = RoI_normalized.sum(axis = 0) 
-HistRowsNorm = HistRows / np.max(HistRows)
+HistRows = RoI.sum(axis = 1) 
+HistRows = HistRows / np.max(HistRows)
 
-HistCols = RoI_normalized.sum(axis = 1)
-HistColsNorm = HistCols / np.max(HistCols)
+HistCols = RoI.sum(axis = 0)
+HistCols = HistCols / np.max(HistCols)
 
-#%% Fitting
-# Fitting functions
-def Lorentzian(x, offset, amplitude, middle, width):
-    return offset + amplitude * width / ((x - middle)**2 + .25 * width**2)
-
-
-# Lorentzian initial guess fit
-amplitude_guess = 1
-offset_guess = 0.1
-width_guess = 1
-middle_guess = 0
-LorentzianGuess = [offset_guess, amplitude_guess, middle_guess, width_guess]
-
-# Fit Lorentzian
-poptRows, pcovRows = curve_fit(Lorentzian, RowRange, HistRowsNorm, p0 = LorentzianGuess)
-poptCols, pcovCols = curve_fit(Lorentzian, ColRange, HistColsNorm, p0 = LorentzianGuess)
-
-#%% Plot histograms over rows and columns
-figSum, (axRow, axCol) = plt.subplots(nrows = 1,
-                                      ncols = 2,
-                                      tight_layout = True,
-                                      sharey = True,
-                                      figsize = (6,3))
-# Grid, ticks
-axRow.grid()
-axRow.xaxis.set_major_locator(MultipleLocator(0.2))
-axRow.xaxis.set_minor_locator(MultipleLocator(0.1))
-
-axCol.grid()
-axCol.xaxis.set_major_locator(MultipleLocator(0.2))
-axCol.xaxis.set_minor_locator(MultipleLocator(0.1))
-
-# Sum over rows
-axRow.scatter(RowRange,
-              HistRowsNorm,
-              s = 10)
-axRow.set_xlabel(r'$x$ [mm]')
-axRow.set_ylabel(r'Normalized counts [a.u.]')
-
-# Sum over columns
-axCol.scatter(ColRange,
-              HistColsNorm,
-              s = 10)
-axCol.set_xlabel(r'$y$ [mm]')
-
-# Plot fit
-axRow.plot(RowRange,
-           Lorentzian(RowRange, *poptRows),
-           color = 'red')
-axCol.plot(ColRange,
-           Lorentzian(ColRange, *poptCols),
-           color = 'red')
-
-# Plot fits
-plt.savefig('exports/LorenzianFit.pdf',
-            dpi = 300,
-            pad_inches = 0,
-            bbox_inches= 'tight')
-
-
-             
 #%% Plot MOT fluoresence image
-fig = plt.figure(figsize = (4.5, 3))
-ax = plt.subplot()
 
-img = ax.imshow(RoI_normalized, 
+# Initialize gridspec
+
+fig = plt.figure(figsize=(4, 4))
+gs = gridspec.GridSpec(4, 4, hspace = 0,
+                       wspace = 0, 
+                       figure = fig, 
+                       height_ratios = [1, h, 1, h / 4.8], width_ratios = [1, w, 1, w / 4.28])
+
+#gs = fig.add_gridspec(2, 4, hspace=0, wspace=0,height_ratios=[3,1],width_ratios=[1,4,1,1])
+#(ax1, ax2), (ax3, ax4) = gs.subplots()
+ax1 = plt.subplot(gs[0 : 3, 0 : 3])
+ax2 = plt.subplot(gs[1, 3])
+ax3 = plt.subplot(gs[3, 1])
+ax4 = plt.subplot(gs[3, 3])
+
+img = ax1.imshow(RoI, 
                 interpolation = 'nearest',
                 origin = 'lower',
                 vmin = 0.)
 img.set_cmap('magma')
-ax.axis('off')
-
-# Colorbar
-cb = plt.colorbar(img,
-                  ax = ax,
-                  ticks = np.linspace(0, 1, 5),
-                  orientation = 'vertical')
+ax1.axis('off')
 
 # Scalebar
 scalebar_object_size = 100e-6 #micron
 scalebar_pixels = int(scalebar_object_size / (pixel_size / magnification)) # integer number pixels
 
-scale_bar = AnchoredSizeBar(ax.transData,
+scale_bar = AnchoredSizeBar(ax1.transData,
                            scalebar_pixels, # pixels
                            r'100 $\mu$m', # real life distance of scale bar
                            'lower left', 
@@ -151,17 +95,72 @@ scale_bar = AnchoredSizeBar(ax.transData,
                            color = 'white',
                            frameon = False,
                            size_vertical = 2.5)
-ax.add_artist(scale_bar)
+ax1.add_artist(scale_bar)
+
+#%% Fitting
+
+# Fitting function
+def Gaussian(x, offset, amplitude, middle, width):
+    return offset + amplitude * np.exp(-0.5 * ((x - middle)/ width)**2)
+
+# Gaussian initial guess fit
+offset_guess = 0.2
+amplitude_guess = 0.8
+middle_guess = 5
+width_guess = 15
+guess = [offset_guess, amplitude_guess, middle_guess, width_guess]
+
+# independent variales for fitting (pixels)
+pixels_x = np.linspace(-cropping_range, cropping_range - 1, 2 * cropping_range)
+pixels_y = np.linspace(-cropping_range, cropping_range - 1, 2 * cropping_range)
+
+# Fit Gaussian
+poptRows, pcovRows = curve_fit(Gaussian, pixels_y, HistRows, p0 = guess)
+poptCols, pcovCols = curve_fit(Gaussian, pixels_x, HistCols, p0 = guess)
+
+
+#%% Plot sums and fits
+
+# Independent variables for plotting
+x_coordinate = np.linspace(-cropping_range, cropping_range - 1, 2 * cropping_range) * pixel_size / magnification * 10e3
+y_coordinate = np.linspace(-cropping_range, cropping_range - 1, 2 * cropping_range) * pixel_size / magnification * 10e3
+
+# Sum over rows
+ax2.scatter(-np.flip(HistRows), pixels_y * pixel_size / magnification * 10e2,
+            s = 3)            
+
+ax2.yaxis.set_ticks_position('right')
+ax2.yaxis.set_label_position('right')
+ax2.set_xticks([])
+
+
+ax2.plot(-np.flip(Gaussian(pixels_y, *poptRows)), pixels_y * pixel_size / magnification * 10e2,
+         color = 'r',
+         linewidth = 1)
+ax2.set_ylabel(r'$y$ [mm]')
+
+# Sum over columns
+ax3.scatter(pixels_x * pixel_size / magnification * 10e2, HistCols,
+            s = 4)
+ax3.set_yticks([])
+
+
+ax3.plot(pixels_x * pixel_size / magnification * 10e2, Gaussian(pixels_x, *poptCols),
+         color = 'r',
+         linewidth = 1)
+ax3.set_xlabel(r'$x$ [mm]')
+
+# Corner bottom right
+ax4.axis('off')
 
 #%% Saving
-plt.savefig('exports/MOTfluoresence.pdf',
-            dpi = 300,
+
+plt.savefig('exports/FluoresenceAndFits.pdf',
+            dpi = 300, 
             pad_inches = 0,
-            bbox_inches= 'tight')
+            bbox_inches = 'tight')
 
-FWHM_row = np.round(abs(poptRows[3]),3)
-FWHM_col = np.round(abs(poptCols[3]),3)
-
-print('FWHM (rows) is: ' + str(FWHM_row) + ' mm')
-print('FWHM (columns) is: ' + str(FWHM_col) + ' mm')
-
+sigma_x = np.round(poptCols[3] * pixel_size / magnification * 10e5)
+print(sigma_x)
+sigma_y = np.round(poptRows[3] * pixel_size / magnification * 10e5)
+print(sigma_y) 
