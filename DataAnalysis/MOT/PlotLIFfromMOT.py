@@ -63,7 +63,7 @@ HistCols = HistCols / np.max(HistCols)
 
 # Initialize gridspec
 
-fig = plt.figure(figsize=(4, 4))
+fig = plt.figure(figsize=(5, 5))
 gs = gridspec.GridSpec(4, 4, hspace = 0,
                        wspace = 0, 
                        figure = fig, 
