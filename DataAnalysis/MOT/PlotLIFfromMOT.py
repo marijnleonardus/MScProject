@@ -61,9 +61,8 @@ HistCols = HistCols / np.max(HistCols)
 
 #%% Plot MOT fluoresence image
 
-# Initialize gridspec
-
-fig = plt.figure(figsize=(5, 5))
+# Initialize gridspec with correct ratios
+fig = plt.figure(figsize =(4, 4))
 gs = gridspec.GridSpec(4, 4, hspace = 0,
                        wspace = 0, 
                        figure = fig, 
@@ -80,7 +79,7 @@ img = ax1.imshow(RoI,
                 interpolation = 'nearest',
                 origin = 'lower',
                 vmin = 0.)
-img.set_cmap('magma')
+img.set_cmap('gnuplot2')
 ax1.axis('off')
 
 # Scalebar
@@ -127,7 +126,7 @@ y_coordinate = np.linspace(-cropping_range, cropping_range - 1, 2 * cropping_ran
 
 # Sum over rows
 ax2.scatter(-np.flip(HistRows), pixels_y * pixel_size / magnification * 10e2,
-            s = 3)            
+            s = 5)            
 
 ax2.yaxis.set_ticks_position('right')
 ax2.yaxis.set_label_position('right')
@@ -141,7 +140,7 @@ ax2.set_ylabel(r'$y$ [mm]')
 
 # Sum over columns
 ax3.scatter(pixels_x * pixel_size / magnification * 10e2, HistCols,
-            s = 4)
+            s = 5)
 ax3.set_yticks([])
 
 

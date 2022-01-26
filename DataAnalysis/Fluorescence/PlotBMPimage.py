@@ -29,12 +29,12 @@ maxRow = 51
 # background
 background = 10
 
-dimension = '2x2'
+dimension = '2x3'
 
 #%% Load, crop RoI
 
-location = 'images/24january/' 
-filename  = dimension + '.bmp'
+location = 'images/24january/averaging/' 
+filename  = '50averages.bmp'
 
 def bmp_import(location, filename):
     bmp_file = Image.open(location + filename)
@@ -51,17 +51,22 @@ def crop_RoI(image, maxRow, maxCol, Range):
     return array_crop
 
 RoI = crop_RoI(image, maxRow, maxCol, cropping_range)
+RoI = RoI / np.max(RoI)
 
-#subtract background
 
 
 #%% plotting and saving
 
-fig, ax = plt.subplots()
-ax.imshow(RoI, cmap = 'gnuplot2')
+fig, ax = plt.subplots(figsize = (3,2.5))
+plot = ax.imshow(RoI, cmap = 'gnuplot2')
 ax.axis('off')
 
-plt.savefig('exports/'+dimension+'fluorescence.pdf',
+#cb = fig.colorbar(plot, shrink = 0.9, ticks =[0,0.5,1])
+
+# annotate
+ax.annotate("50 avg.", xy = (0.6, 0.9), xycoords = "axes fraction", fontweight = 'bold', fontsize = 12, color = 'white')
+
+plt.savefig('exports/'+dimension+'fluorescence50avg.pdf',
             pad_inches = 0,
             bbox_inches = 'tight')
 
