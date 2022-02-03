@@ -19,7 +19,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 #%% load data
 
 # Load calculated pattern
-pattern = Image.open('files/7x7_calc_pattern.bmp')
+pattern = Image.open('files/7x7_12focalunits.bmp')
 patternGrey = pattern.convert('L')
 
 patternArray = np.array(patternGrey) / 255

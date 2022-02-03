@@ -64,9 +64,9 @@ ax3.plot(rho, Z04polynomial, label = r'only $R_4^0$')
 ax1.set_ylabel(r'$\phi(\alpha_0)/2\pi$', usetex = True)
 
 # x labels
-ax1.set_xlabel(r'$\alpha_0$', usetex = True)
-ax2.set_xlabel(r'$\alpha_0$', usetex = True)
-ax3.set_xlabel(r'$r/R$', usetex = True)
+ax1.set_xlabel(r'$\alpha_0$ [rad]', usetex = True)
+ax2.set_xlabel(r'$\alpha_0$ [rad]', usetex = True)
+ax3.set_xlabel(r'$r^{\prime}/R$', usetex = True)
 
 # legend
 ax1.legend(loc = 'upper center')

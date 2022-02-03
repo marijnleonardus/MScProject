@@ -30,7 +30,10 @@ fig, ax = plt.subplots(1, 1, figsize = (4.5, 2.5))
 ax.grid()
 
 ax.plot(spotAmount, uniformity,
-        linewidth = 2.5)
+           '-o',
+           linewidth = 2,
+           markersize =4
+           )
 
 ax.set_ylim(0, 13)
 ax.set_xlabel(r'$n$', usetex = True)

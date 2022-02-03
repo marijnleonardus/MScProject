@@ -23,18 +23,18 @@ pixel_size = 6.5# micron
 magnification = 55/4 # f2/f1
 
 # center
-maxCol = 71
-maxRow = 51
+maxCol = 62
+maxRow = 48
 
 # background
 background = 10
 
-dimension = '2x3'
+dimension = '2x2'
 
 #%% Load, crop RoI
 
-location = 'images/24january/averaging/' 
-filename  = '50averages.bmp'
+location = 'images/26january/' 
+filename  = '10avg.bmp'
 
 def bmp_import(location, filename):
     bmp_file = Image.open(location + filename)
@@ -64,9 +64,9 @@ ax.axis('off')
 #cb = fig.colorbar(plot, shrink = 0.9, ticks =[0,0.5,1])
 
 # annotate
-ax.annotate("50 avg.", xy = (0.6, 0.9), xycoords = "axes fraction", fontweight = 'bold', fontsize = 12, color = 'white')
+ax.annotate("10 avg.", xy = (0.6, 0.9), xycoords = "axes fraction", fontweight = 'bold', fontsize = 12, color = 'white')
 
-plt.savefig('exports/'+dimension+'fluorescence50avg.pdf',
+plt.savefig('exports/'+dimension+'fluoresence10avg.pdf',
             pad_inches = 0,
             bbox_inches = 'tight')
 
