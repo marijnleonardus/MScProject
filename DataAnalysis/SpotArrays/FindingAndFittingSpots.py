@@ -27,9 +27,9 @@ from matplotlib.ticker import (MultipleLocator,
 #%% Variables
 
 # Number of spots that we make, to check if spot detection worked
-number_spots_expected = 9*9
+number_spots_expected = 49
 # Location of .mat data file
-mat_file_location = 'files/10 4 adjusted spacing/9x9.mat'
+mat_file_location = 'files/10 4 adjusted spacing/7x7.mat'
 # Threshold on how sensitive spot detection is
 threshold = 0.15
 # How many pixels do we crop around the spot maxima locations
@@ -60,7 +60,7 @@ def load_and_save(mat_file):
     
     # Cropping the array using the provided coordinates
     cam_frame_cropped = cam_frame[cam_x_min : cam_x_max , cam_y_min : cam_y_max]
-    #cam_frame_cropped = cam_frame[100 : 900, 0 : 700]
+    cam_frame_cropped = cam_frame[100 : 900, 0 : 700]
     
     # Save cropped frame as numpy array
     np.save('files/cam_frame_array_cropped', cam_frame_cropped)
@@ -88,7 +88,7 @@ fig, (axCam,axLoG) = plt.subplots(ncols = 2,
                                   figsize = (7.7, 3.4))
 
 axCam.imshow(image_normalized, 
-             cmap = 'jet'
+             cmap = 'gray'
           #cmap = 'gray'
           )    
    
@@ -137,16 +137,16 @@ axLoG.scatter(maxima_x_coordinates , maxima_y_coordinates,
              )
 
 # Annotate
-axCam.annotate("a)", 
-               xy = (-0.2, 0.92),
+axCam.annotate("(a)", 
+               xy = (0.5, -0.3),
                xycoords = "axes fraction"
                , fontweight = 'bold', 
-               fontsize = 14)
-axLoG.annotate("b)", 
-               xy = (-0.2, 0.92),
+               fontsize = 11)
+axLoG.annotate("(b)", 
+               xy = (0.5, -0.3),
                xycoords = "axes fraction"
                , fontweight = 'bold', 
-               fontsize = 14)
+               fontsize = 11)
 
 # colorbar
 #fig.colorbar(cm.ScalarMappable(cmap = 'viridis'),
